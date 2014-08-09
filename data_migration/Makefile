@@ -1,0 +1,36 @@
+## -*- Makefile -*-
+##
+##: malw
+##: 2014-5-7 15:31:05
+## Makefile created by 
+
+CCC = gcc
+CXX = g++
+BASICOPTS = -g -rdynamic -Wall -m64
+CCFLAGS = $(BASICOPTS)
+CXXFLAGS = $(BASICOPTS)
+CXX_H_PATH =  -I/usr/include/mysql 
+OBJ_DEPEND = ../lib/libmysqlreplication.a
+LDLIBS = -lcrypto -lmysqlclient -lpthread 
+
+AppTarget = ../debug/mysqlreplication
+
+OBJS = main.o SysConfig.o SysException.o ExceptionStackTrace.o iniFile.o directory.o file.o \
+	Connector.o
+					
+%o: %c
+	$(CCC) $(CCFLAGS) -c -o  $@ $<
+
+%o: %cpp
+	$(CXX) $(CXXFLAGS) -c -o  $@ $<
+
+$(AppTarget): $(OBJS)	
+	$(CXX) $(CXXFLAGS) $(CXX_H_PATH) -o $@ $(OBJS) $(OBJ_DEPEND) $(LDLIBS) 
+
+.PHONY:clean 
+clean: 
+	rm -f *.o  ../debug/mysqlreplication 
+	
+
+.KEEP_STATE:
+.KEEP_STATE_FILE:.make.state.GNU-amd64-Linux

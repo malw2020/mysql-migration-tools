@@ -10,6 +10,8 @@ BASICOPTS = -g -rdynamic -Wall -m64
 CCFLAGS = $(BASICOPTS)
 CXXFLAGS = $(BASICOPTS)
 CXX_H_PATH =  -I/usr/include/mysql 
+CXX_LIB_PATH = -L /usr/lib64/mysql
+
 OBJ_DEPEND = ../lib/libmysqlreplication.a
 LDLIBS = -lcrypto -lmysqlclient -lpthread 
 
@@ -19,13 +21,13 @@ OBJS = main.o SysConfig.o SysException.o ExceptionStackTrace.o iniFile.o directo
 	Connector.o
 					
 %o: %c
-	$(CCC) $(CCFLAGS) -c -o  $@ $<
+	$(CCC) $(CCFLAGS) $(CXX_H_PATH) -c -o  $@ $<
 
 %o: %cpp
-	$(CXX) $(CXXFLAGS) -c -o  $@ $<
+	$(CXX) $(CXXFLAGS) $(CXX_H_PATH) -c -o  $@ $<
 
 $(AppTarget): $(OBJS)	
-	$(CXX) $(CXXFLAGS) $(CXX_H_PATH) -o $@ $(OBJS) $(OBJ_DEPEND) $(LDLIBS) 
+	$(CXX) $(CXXFLAGS) $(CXX_H_PATH) -o $@ $(OBJS) $(OBJ_DEPEND) $(CXX_LIB_PATH) $(LDLIBS) 
 
 .PHONY:clean 
 clean: 

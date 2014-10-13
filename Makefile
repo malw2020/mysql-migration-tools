@@ -9,10 +9,10 @@ DOS2UNIX=1
 
 TARGETDIR_test=.
 
-all:${DOS2UNIX}  pig
+all: pig
 
-${DOS2UNIX}:
-	dos2unix *.cpp
+#${DOS2UNIX}:
+#	dos2unix *.cpp
 	
 pig:
 	cd lib_mysql_replication && make
@@ -21,8 +21,6 @@ pig:
 clean: 
 	cd lib_mysql_replication && make clean
 	cd migration && make clean
-
-	rm -f *.o migration
 
 .KEEP_STATE:
 .KEEP_STATE_FILE:.make.state.GNU-amd64-Linux

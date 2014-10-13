@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 02110-1301  USA
 */
 
-#include "../lib_mysql_replication_src/binlog_api.h"
+#include "../lib_mysql_replication/binlog_api.h"
 #include "SysException.h"
 #include "SysConfig.h"
 #include "iniFile.h"

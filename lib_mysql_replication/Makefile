@@ -12,7 +12,8 @@ CCFLAGS = $(BASICOPTS)
 CXXFLAGS = $(BASICOPTS)
 CCLIBFLAGS = $(BASICLIBOPTS)
 CXXLIBFLAGS = $(BASICLIBOPTS)
-CXX_H_PATH =  -I/usr/include/mysql
+CXX_H_PATH = -I/usr/include/mysql
+CXX_LIB_PATH = -L /usr/lib64/mysql
 
 OBJ_STATIC = ../lib/libmysqlreplication.a
 OBJ_SHARE = ../lib/libmysqlreplication.so
@@ -37,16 +38,16 @@ OBJS = access_method_factory.o \
 					value.o \
 					
 %o: %c
-	$(CCC) $(CCFLAGS) -c -o  $@ $<
+	$(CCC) $(CCFLAGS) $(CXX_H_PATH) -c -o  $@ $<
 
 %o: %cpp
-	$(CXX) $(CXXFLAGS) -c -o  $@ $<
+	$(CXX) $(CXXFLAGS) $(CXX_H_PATH) -c -o  $@ $<
 	
 $(OBJ_STATIC): $(OBJS)
 	ar rv $@ ${OBJS}
 
 $(OBJ_SHARE): $(OBJS)
-	$(CXX)  $(CXXLIBFLAGS) -Wl,-rpath, $(CXX_H_PATH) -o $@ $< $(LDLIBS) 
+	$(CXX)  $(CXXLIBFLAGS) -Wl,-rpath, $(CXX_H_PATH) -o $@ $< $(CXX_LIB_PATH) $(LDLIBS) 
 
 .PHONY:clean 
 clean: 

@@ -2,7 +2,7 @@
  * File:   ExceptionStackTrace.h
  * Author: malw
  *
- * Created on 2014年3月24日, 上午9:50
+ * Created on 2014年3月24日, 21:50
  */
 
 #ifndef EXCEPTIONSTACKTRACE_H

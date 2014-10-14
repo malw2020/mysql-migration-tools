@@ -1,8 +1,8 @@
 /* 
  * File:   Connector.h
- * Author: malw
+ * Author: maliwei
  *
- * Created on 2014-05-12, 14:45
+ * Created on 2014-05-12, 23:45
  */
 
 #ifndef CONNECTOR_H__

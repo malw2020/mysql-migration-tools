@@ -1,5 +1,5 @@
-#include "Connector.h"
-#include "SysConfig.h"
+#include "connector.h"
+#include "sys_config.h"
 
 #include <mysql.h>
 

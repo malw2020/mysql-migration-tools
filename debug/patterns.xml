@@ -1,0 +1,32 @@
+<?xml version="1.0" ?> 
+<Replication>
+    <!-- mode type vualu: 1 1->1; 2 1->n; 3; n->1; 4 n->n --> 
+    <Mode type="1" />
+    <!-- source database --> 
+    <Sources>
+        <Source>
+            <IP>172.17.4.50</IP>
+            <Port>3333</Port>
+            <File>mysql-bin.000026</File>
+            <Position>297</Position>
+            <Replicate_do_db>
+                <Database>test</Database>
+            </Replicate_do_db>
+            <Replicate_ignore_db>
+                <Database>mysql</Database>
+            </Replicate_ignore_db>    
+        </Source>
+    </Sources>    
+    <!-- destination database --> 
+    <Destinations>
+        <Destination>
+            <IP>172.17.4.50</IP>
+            <Port>3333</Port>
+            <User>dba</User>
+            <Password>yvhkfhvk</Password>
+            <Database>test3</Database>
+        </Destination>        
+    </Destinations>
+    <Shards />
+    <Relation />
+</Replication>

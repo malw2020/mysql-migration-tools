@@ -2,13 +2,13 @@
  * File:   SysException.h
  * Author: malw
  *
- * Created on 2014年3月24日, 上午10:04
+ * Created on 2014年3月24日, 22:04
  */
 
 #ifndef SYSEXCEPTION_H
 #define	SYSEXCEPTION_H
 
-#include "ExceptionStackTrace.h"
+#include "exception_stack_trace.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>

@@ -1,7 +1,7 @@
 ## -*- Makefile -*-
 ##
-##: yfmaliwei
-##: 2014-5-7 15:31:05
+##: maliwei
+##: 2014-5-7 21:31:05
 ## Makefile created by Oracle Solaris Studio.
 
 CCC = gcc

@@ -13,7 +13,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "iniFile.h"
+#include "ini_file.h"
 
 #define MAX_FILE_SIZE 1024*16
 #define INI_BUF_SIZE 256

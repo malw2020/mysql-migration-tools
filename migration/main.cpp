@@ -19,11 +19,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 */
 
 #include "../lib_mysql_replication/binlog_api.h"
-#include "SysException.h"
-#include "SysConfig.h"
-#include "iniFile.h"
-#include "directory.h"
-#include "Connector.h"
+#include "../lib_common/sys_exception.h"
+#include "../lib_common/ini_file.h"
+#include "../lib_common/directory.h"
+#include "sys_config.h"
+#include "connector.h"
 
 #include <iostream>
 #include <sstream>
@@ -33,6 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <algorithm>
 
 using namespace std;
+
 using mysql::Binary_log;
 using mysql::system::create_transport;
 using mysql::system::get_event_type_str;
@@ -112,6 +113,12 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    // load ReplicationState info
+    if(false == ReplicationState::getInstance().init_relication_info()) {
+        std::cerr << "init relication info failure." << std::endl;
+        return -1;
+    }
+    
     // load config information
     if(false == SysConfig::getInstance().load()) {
         return -1;

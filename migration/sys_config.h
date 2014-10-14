@@ -47,6 +47,8 @@ private:
     ReplicationState(){        
         patterns_file = PATTERNS_FILE;
         replication_state_file = REPLICATION_STATE_FILE;
+        
+        error_description = "no error";
     }
 public:
     ~ReplicationState(){
@@ -56,11 +58,12 @@ public:
     static ReplicationState& getInstance();
     
     bool init_relication_info();
-    //bool update_replication_state(MasterInfo& master, ReplicationInfo& replication);
-    //bool save_replication_info();
+    bool update_replication_state(MasterInfo& master, ReplicationInfo& replication);
+    bool save_replication_info();
     
 private:
-    void add_master_node(MasterInfo& master, ReplicationInfo& replication);
+    void add_master_node(const MasterInfo& master, const ReplicationInfo& replication);
+    string get_master_desc(const MasterInfo& master) const;
     
 public:
     string   error_ip;

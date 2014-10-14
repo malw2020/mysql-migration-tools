@@ -1,9 +1,9 @@
-[Error]
+[ErrorInfo]
+Description=no error
 IP=127.0.0.1
 Port=3306
 BinLogFile=mysql-bin.000026
 Position=0
-Description=no error
 
 [Replication_IP_Port]
 BinLogFile=mysql-bin.000026

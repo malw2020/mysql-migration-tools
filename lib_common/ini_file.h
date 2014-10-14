@@ -45,7 +45,7 @@ public:
     *@param file [in] path of the initialization file
     *@return profile int value,if read fail, return default value
     */
-    int read_profile_int(const char *section, const char *key,int default_value);
+    int read_profile_int(const char *section, const char *key, int default_value);
     int read_profile_int(const string section, const string key, int default_value = 0);
     
     /**

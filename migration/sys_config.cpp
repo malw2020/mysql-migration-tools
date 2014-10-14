@@ -1,9 +1,13 @@
 #include "sys_config.h"
 #include "../lib_common/file.h"
-#include "../lib_common/ini_file.h"
 #include "../lib_common/directory.h"
+#include "../lib_common/ini_file.h"
 #include "../lib_tinyxml/tinyxml.h"  
 #include "../lib_tinyxml/tinystr.h" 
+
+#include <sstream>
+
+using namespace std;
 
 ReplicationState* ReplicationState::instance = NULL;
 
@@ -75,15 +79,91 @@ bool ReplicationState::init_relication_info() {
     return true;
 }
 
-void ReplicationState::add_master_node(MasterInfo& master, ReplicationInfo& replication)
+bool ReplicationState::update_replication_state(MasterInfo& master, ReplicationInfo& replication)
 {
-     printf("master node info -- mater info: %s, %d; replication info: %s, %d \n", 
-             master.ip.c_str(), master.port,
-             replication.bin_log_file.c_str(), replication.position);
-     
+    std::map<MasterInfo, ReplicationInfo>::iterator iterator_replications;
+    iterator_replications = replications.find(master);
+    if(iterator_replications == replications.end())
+        return false;
+
+    replications[master] = replication;
+    return true;
+}
+
+bool ReplicationState::save_replication_info()
+{
+    string currentPath = "";
+    Directory::getCurrentPath(currentPath); 
+    
+    string replication_state_abs_path = currentPath + replication_state_file;
+           
+    IniFile inifile(replication_state_abs_path);
+    if(0 == inifile.write_profile_string("ErrorInfo", "Description", error_description)){
+        printf("save replication info error desc failure.\n");
+        return false;
+    }
+    
+    if(0 == inifile.write_profile_string("ErrorInfo", "IP", error_ip)){
+        printf("save replication info error IP failure.\n");
+        return false;
+    }
+    
+    if(0 == inifile.write_profile_string("ErrorInfo", "Port", error_port)){
+        printf("save replication info error port failure.\n");
+        return false;
+    }
+    
+    if(0 == inifile.write_profile_string("ErrorInfo", "BinLogFile", error_bin_log_file)){
+        printf("save replication info error bin log file failure.\n");
+        return false;
+    }
+    
+    stringstream ss_error;
+    ss_error<<error_position;
+    if(0 == inifile.write_profile_string("ErrorInfo", "Position", ss_error.str())){
+        printf("save replication info error position failure.\n");
+        return false;
+    }
+    
+    if(0 == inifile.write_profile_string("ErrorInfo", "Description", error_description)){
+        printf("save replication info error desc failure.\n");
+        return false;
+    }
+    
+    std::map<MasterInfo, ReplicationInfo>::iterator iterator_replications;
+    for(iterator_replications = replications.begin(); iterator_replications != replications.end(); ++iterator_replications)
+    {
+        string section = "Replication_" + get_master_desc(iterator_replications->first);
+        if(0 == inifile.write_profile_string(section, "BinLogFile", iterator_replications->second.bin_log_file)){
+            printf("save replication info node file failure.\n");
+            return false;
+        }
+        
+        stringstream ss_node_pos;
+        ss_node_pos<<error_position;
+        if(0 == inifile.write_profile_string(section, "Position", ss_node_pos.str())){
+            printf("save replication info node position failure.\n");
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+void ReplicationState::add_master_node(const MasterInfo& master, const ReplicationInfo& replication)
+{
      replications.insert(std::pair<MasterInfo, ReplicationInfo>(master, replication));
-     
-     printf("replications size = %d.\n", replications.size());
+}
+
+string ReplicationState::get_master_desc(const MasterInfo& master) const
+{
+    string node_desc = "";
+    
+    stringstream ss;
+    ss<<master.port;
+    node_desc = master.ip + "_" + ss.str();
+    
+    return node_desc;
 }
 
 SysConfig* SysConfig::m_instance = NULL;

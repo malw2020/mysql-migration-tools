@@ -32,7 +32,11 @@ public:
 public:
     static Dispatcher& get_instance();
     bool replicate(MasterInfo &master, string sql_cmd);
-       
+    
+private:
+    int get_one_to_one_rand_seed();
+    int get_one_to_many_rand_seed(unsigned int max);   
+    
 private:
     static Dispatcher* instance;
     

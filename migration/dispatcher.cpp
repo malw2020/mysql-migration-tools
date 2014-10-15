@@ -11,7 +11,8 @@ Dispatcher& Dispatcher::get_instance()
     return (*instance);
 }
 
-bool Dispatcher::replicate(string sqlCmd) {
-                 
+bool Dispatcher::replicate(MasterInfo &master, string sqlCmd)
+{
+    
     return false;
 }

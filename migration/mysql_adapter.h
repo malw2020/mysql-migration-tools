@@ -26,7 +26,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <string>
-#include <map>
+#include <vector>
 
 using namespace std;
 
@@ -74,6 +74,8 @@ private:
     bool is_connected;          // 
     int reconn_counter;         // try to connector, if reconn less than 10
 };
+
+typedef std::vector<MySQLAdapter> MySQLAdapterSets;
 
 #endif	/* MYSQL_ADAPTER_H */
 

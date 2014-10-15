@@ -31,10 +31,13 @@ public:
     
 public:
     static Dispatcher& get_instance();
-    bool replicate(string sql_cmd);
+    bool replicate(MasterInfo &master, string sql_cmd);
        
 private:
     static Dispatcher* instance;
+    
+private:
+    std::map<MasterInfo, MySQLAdapterSets> master_mysql_adapters;
 };
 
 #endif	/* DISPATCHER_H__ */

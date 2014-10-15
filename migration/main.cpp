@@ -61,14 +61,20 @@ public:
             return ev;
         
         std::cout<<ev->db_name <<"  "<<ev->query<<std::endl;
-//        if(ev->db_name == SysConfig::getInstance().m_sourceDatabase) {
-//            if (false == MySqlConnector::getInstance().replicate(ev->query)) {
-//                printf("replication data to mysql failure.\n");
-//                return NULL;
-//            }
-//        }
+        if(validate_database(ev->db_name))
+        {
+            if (false == Dispatcher::get_instance().replicate(master_info, ev->query)) {
+                printf("replication data to mysql failure.\n");
+                return NULL;
+            } 
+        }
         
         return ev;
+    }
+    
+    bool validate_database(string database)
+    {
+        return true;
     }
     
 public:

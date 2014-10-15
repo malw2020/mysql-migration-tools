@@ -17,7 +17,7 @@ LDLIBS = -lcrypto -lmysqlclient -lpthread
 
 AppTarget = ../debug/mysqlreplication
 
-OBJS = main.o replication_patterns.o connector.o \
+OBJS = main.o replication_patterns.o mysql_adapter.o connector.o \
 					
 %o: %c
 	$(CCC) $(CCFLAGS) $(CXX_H_PATH) -c -o  $@ $<

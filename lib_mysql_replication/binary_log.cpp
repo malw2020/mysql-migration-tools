@@ -64,7 +64,7 @@ Content_handler_pipeline *Binary_log::content_handler_pipeline(void)
 int Binary_log::wait_for_next_event(mysql::Binary_log_event **event_ptr)
 {
   int rc;
-  bool handler_code;
+  //bool handler_code;
   mysql::Binary_log_event *event;
 
   do {

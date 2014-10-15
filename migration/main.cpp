@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include "../lib_common/sys_exception.h"
 #include "../lib_common/ini_file.h"
 #include "../lib_common/directory.h"
-#include "sys_config.h"
+#include "replication_patterns.h"
 #include "connector.h"
 
 #include <iostream>
@@ -44,10 +44,13 @@ SignalTranslator<FloatingPointFaultException> g_objFloatingPointExceptionTransla
 ExceptionHandler g_objExceptionHandler;
 
 
-class MySqlToMySqlTransponder : public Content_handler {
+class QueryVariables : public Content_handler {
 public:
-    MySqlToMySqlTransponder()
+    QueryVariables(SourceNode& node)
     {
+        source_node = node;
+        master_info.ip   = node.ip;
+        master_info.port = node.port;
     }
 
     Binary_log_event *process_event(Query_event *ev) {
@@ -67,87 +70,93 @@ public:
         
         return ev;
     }
+    
+public:
+    SourceNode source_node;
+    MasterInfo master_info;
 };
 
-class Rotate_variables : public Content_handler {
+class RotateVariables : public Content_handler {
 public:
-    Rotate_variables()
+    RotateVariables(SourceNode& node)
     {
+        source_node = node;
+        master_info.ip   = node.ip;
+        master_info.port = node.port;
+        replication_info.bin_log_file = node.bin_log_file;
+        replication_info.position     = node.position;
     }
 
     Binary_log_event *process_event(Rotate_event *ev) {
         if(ev == NULL)
             return NULL;
+
+        replication_info.bin_log_file = ev->binlog_file;
+        replication_info.position     = ev->binlog_pos;
         
-        m_binlog_file = ev->binlog_file;
-        m_binlog_pos  = ev->binlog_pos;
-        
-        string currentPath = "";
-        Directory::getCurrentPath(currentPath);  
-    
-        string cfgFile = currentPath + "replication.ini";          
-        IniFile inifile(cfgFile);
-        if (0 == inifile.write_profile_string("Replication", "BinLogFile", m_binlog_file)){
-            printf("set replication binlog file name failure.\n");
-            return NULL;
-        }
-    
-        stringstream ss;
-        ss<<m_binlog_pos;
-        if (0 == inifile.write_profile_string("Replication", "Position", ss.str())){
-            printf("set replication binlog position failure.\n");
-            return NULL;
-        }
-            
+        ReplicationState::getInstance().save_replication_info(master_info, replication_info);
+                   
         return ev;
     }
     
+    bool update_binlog_pos(ulong pos)
+    {
+        replication_info.position = pos;
+        ReplicationState::getInstance().save_replication_info(master_info, replication_info);
+        return true;
+    }
+    
 public:
-    std::string m_binlog_file;
-    uint64_t m_binlog_pos;
+    SourceNode source_node;
+    MasterInfo master_info;
+    ReplicationInfo replication_info;
 };
 
-int main(int argc, char** argv) {
-    if (argc != 2) {
-        std::cerr << "Usage: mysqlreplication mysql://dddd:dddd@192.168.1.197:3306" << std::endl;
-        return -1;
-    }
 
+//Usage: mysqlreplication mysql://dddd:dddd@192.168.1.197:3306
+int main(int argc, char** argv) {
     // load ReplicationState info
     if(false == ReplicationState::getInstance().init_relication_info()) {
-        std::cerr << "init relication info failure." << std::endl;
+        std::cerr << "init relication state info failure." << std::endl;
         return -1;
     }
     
-    // load config information
-    if(false == SysConfig::getInstance().load()) {
+    // load Replication Patterns info
+    if(false == ReplicationPatterns::getInstance().load()) {
+        std::cerr << "init relication patterns info failure." << std::endl;
         return -1;
     }
     
-    Binary_log binlog(create_transport(argv[1]));
+    // concat command string
+    SourceNode& source_node = ReplicationPatterns::getInstance().get_source_node();
+    string source_driver    = ReplicationPatterns::getInstance().get_command_line(source_node);
+    std::cout << "sourcer driver command line:" << source_driver.c_str() << std::endl;
+    Binary_log binlog(create_transport(source_driver.c_str()));
     
     // bind query process
-    MySqlToMySqlTransponder mysql2mysql;
-    binlog.content_handler_pipeline()->push_back(&mysql2mysql);
+    QueryVariables query_var(source_node);
+    binlog.content_handler_pipeline()->push_back(&query_var);
     
     // bind rotate process, change binlog file and position
-    Rotate_variables rotate_variable;
-    binlog.content_handler_pipeline()->push_back(&rotate_variable);
+    RotateVariables rotate_var(source_node);
+    binlog.content_handler_pipeline()->push_back(&rotate_var);
     
-    binlog.connect();    
-    int result = binlog.set_position(SysConfig::getInstance().m_binLogFile, SysConfig::getInstance().m_position);
+    int result =  binlog.connect();
+    if(ERR_OK != result)
+    {
+        std::cerr << "connect to master failure." << std::endl;
+        return -1;
+    }
+    
+    result = binlog.set_position(source_node.bin_log_file, source_node.position);
     if (ERR_OK != result )
     {
         std::cerr << "set bin log position failure." << std::endl;
         return -1;
     }
     
-    int currrent_pos = 0;
-    string currentPath = "";
-    Directory::getCurrentPath(currentPath);  
-    string cfgFile = currentPath + "replication.ini";          
-    IniFile inifile(cfgFile);
-    
+    ulong currrent_pos = 0;
+       
     while (true) {
         Binary_log_event *event = NULL;
         result = binlog.wait_for_next_event(&event);
@@ -164,7 +173,7 @@ int main(int argc, char** argv) {
             case QUERY_EVENT:
                 break;
             case ROTATE_EVENT:
-                std::cout<<rotate_variable.m_binlog_file<<"  "<<rotate_variable.m_binlog_pos<<std::endl;
+                std::cout<<rotate_var.replication_info.bin_log_file<<"  "<<rotate_var.replication_info.position<<std::endl;
                 break;
             case FORMAT_DESCRIPTION_EVENT:
                 break;
@@ -174,13 +183,7 @@ int main(int argc, char** argv) {
         
         currrent_pos = binlog.get_position();
         std::cout<<"current pos:"<<currrent_pos<<endl;
-        
-        stringstream ss;
-        ss<<currrent_pos;
-        if (0 == inifile.write_profile_string("Replication", "Position", ss.str())){
-            printf("set replication binlog position failure.\n");
-            return -1;
-        }
+        rotate_var.update_binlog_pos(currrent_pos);
         
         if(event != NULL)
             delete event;

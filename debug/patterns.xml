@@ -7,6 +7,8 @@
         <Source>
             <IP>172.17.4.50</IP>
             <Port>3333</Port>
+            <User>dba</User>
+            <Password>yvhkfhvk</Password>
             <File>mysql-bin.000026</File>
             <Position>297</Position>
             <Replicate_do_db>

@@ -1,5 +1,5 @@
 #include "connector.h"
-#include "sys_config.h"
+#include "replication_patterns.h"
 
 #include <mysql.h>
 

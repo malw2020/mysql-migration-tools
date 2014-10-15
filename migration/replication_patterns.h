@@ -4,8 +4,8 @@
  *
  */
 
-#ifndef SYSCONFIG_H__
-#define	SYSCONFIG_H__
+#ifndef REPLICATION_PATTERNS_H__
+#define	REPLICATION_PATTERNS_H__
 
 #include <stdio.h>
 #include <stdint.h>
@@ -58,7 +58,7 @@ public:
     }
     
 public:
-    static ReplicationState& getInstance();
+    static ReplicationState& get_instance();
     
     bool init_relication_info();
     bool update_replication_state(MasterInfo& master, ReplicationInfo& replication);
@@ -120,7 +120,7 @@ public:
     }
     
 public:
-    static ReplicationPatterns& getInstance();
+    static ReplicationPatterns& get_instance();
     bool load();
     SourceNode& get_source_node();
     string get_command_line(SourceNode& source);
@@ -143,41 +143,5 @@ private:
     string patterns_file;
 };
 
-
-
-
-
-
-
-class SysConfig
-{
-private:
-    SysConfig(){        
-        m_cfgFile = "replication.ini";
-    }
-public:
-    ~SysConfig(){
-    }
-    
-public:
-    static SysConfig& getInstance();
-    bool load();
-    
-public:
-    string m_binLogFile;       // source replication start file name
-    uint64_t m_position;       // source replication start position
-    string m_sourceDatabase;   // source database
-    
-    string m_destIP;           // destination IP
-    int    m_destPost;         // destination Port
-    string m_userName;         // destionation User
-    string m_userPassword;     // destionation pawword
-    string m_destDatabase;     // destionation database
-        
-private:
-    static SysConfig* m_instance;
-    string m_cfgFile;
-};
-
-#endif	/* SYSCONFIG_H__ */
+#endif	/* REPLICATION_PATTERNS_H__ */
 

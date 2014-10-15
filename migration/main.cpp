@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include "../lib_common/ini_file.h"
 #include "../lib_common/directory.h"
 #include "replication_patterns.h"
-#include "connector.h"
+#include "dispatcher.h"
 
 #include <iostream>
 #include <sstream>
@@ -61,12 +61,12 @@ public:
             return ev;
         
         std::cout<<ev->db_name <<"  "<<ev->query<<std::endl;
-        if(ev->db_name == SysConfig::getInstance().m_sourceDatabase) {
-            if (false == MySqlConnector::getInstance().replicate(ev->query)) {
-                printf("replication data to mysql failure.\n");
-                return NULL;
-            }
-        }
+//        if(ev->db_name == SysConfig::getInstance().m_sourceDatabase) {
+//            if (false == MySqlConnector::getInstance().replicate(ev->query)) {
+//                printf("replication data to mysql failure.\n");
+//                return NULL;
+//            }
+//        }
         
         return ev;
     }
@@ -94,7 +94,7 @@ public:
         replication_info.bin_log_file = ev->binlog_file;
         replication_info.position     = ev->binlog_pos;
         
-        ReplicationState::getInstance().save_replication_info(master_info, replication_info);
+        ReplicationState::get_instance().save_replication_info(master_info, replication_info);
                    
         return ev;
     }
@@ -102,7 +102,7 @@ public:
     bool update_binlog_pos(ulong pos)
     {
         replication_info.position = pos;
-        ReplicationState::getInstance().save_replication_info(master_info, replication_info);
+        ReplicationState::get_instance().save_replication_info(master_info, replication_info);
         return true;
     }
     
@@ -116,20 +116,20 @@ public:
 //Usage: mysqlreplication mysql://dddd:dddd@192.168.1.197:3306
 int main(int argc, char** argv) {
     // load ReplicationState info
-    if(false == ReplicationState::getInstance().init_relication_info()) {
+    if(false == ReplicationState::get_instance().init_relication_info()) {
         std::cerr << "init relication state info failure." << std::endl;
         return -1;
     }
     
     // load Replication Patterns info
-    if(false == ReplicationPatterns::getInstance().load()) {
+    if(false == ReplicationPatterns::get_instance().load()) {
         std::cerr << "init relication patterns info failure." << std::endl;
         return -1;
     }
     
     // concat command string
-    SourceNode& source_node = ReplicationPatterns::getInstance().get_source_node();
-    string source_driver    = ReplicationPatterns::getInstance().get_command_line(source_node);
+    SourceNode& source_node = ReplicationPatterns::get_instance().get_source_node();
+    string source_driver    = ReplicationPatterns::get_instance().get_command_line(source_node);
     std::cout << "sourcer driver command line:" << source_driver.c_str() << std::endl;
     Binary_log binlog(create_transport(source_driver.c_str()));
     

@@ -37,18 +37,21 @@ bool MySQLAdapter::query(string sql_cmd) {
 bool MySQLAdapter::connect() {
     if (is_connected == true && handle_mysql != NULL)
         return true;
-      
-    is_connected = false;
+    
     handle_mysql = mysql_init(NULL);
 
     if (!handle_mysql)
+    {
+        printf("mysql_init failure\n");
         return false;
-          
+    }    
+    printf("mysql_init successful.\n");
+    
     if (!mysql_real_connect(handle_mysql, dest_ip.c_str(), dest_user_name.c_str(), dest_user_password.c_str(), 
                             dest_database.c_str(), dest_port, 0, 0)) {
         mysql_close(handle_mysql);
         handle_mysql = NULL;
-        fprintf(stderr, "Failed to connect to database, host:%s, user:%s, pass:%s, db:%s, port:%d, Error: %s\n",
+        printf("connect to database failure, host:%s, user:%s, pass:%s, db:%s, port:%d, Error: %s\n",
                          dest_ip.c_str(), dest_user_name.c_str(), dest_user_password.c_str(), 
                          dest_database.c_str(), dest_port, mysql_error(handle_mysql));
         return false;
@@ -56,6 +59,10 @@ bool MySQLAdapter::connect() {
     else {
         is_connected = true;
     }
+    
+    printf("connect to database successfull, host:%s, user:%s, pass:%s, db:%s, port:%d.\n",
+                    dest_ip.c_str(), dest_user_name.c_str(), dest_user_password.c_str(), 
+                    dest_database.c_str(), dest_port);
     
     return true;
 }

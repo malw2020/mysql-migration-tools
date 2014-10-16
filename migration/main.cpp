@@ -60,7 +60,7 @@ public:
         if(strcmp(ev->query.c_str(), "BEGIN") == 0)
             return ev;
         
-        std::cout<<ev->db_name <<"  "<<ev->query<<std::endl;
+        std::cout<<"database:"<<ev->db_name <<"; query:"<<ev->query<<std::endl;
         if(validate_database(ev->db_name))
         {
             if (false == Dispatcher::get_instance().replicate(master_info, ev->query)) {
@@ -74,7 +74,16 @@ public:
     
     bool validate_database(string database)
     {
-        return true;
+        vector<string>::const_iterator result;
+        result = find(source_node.replicate_ignore_db.begin(), source_node.replicate_ignore_db.end(), database);
+        if(result != source_node.replicate_do_db.end())
+            return false;
+                
+        result = find(source_node.replicate_do_db.begin() , source_node.replicate_do_db.end(), database);
+        if(result == source_node.replicate_do_db.end())
+            return true;
+        else
+            return false;
     }
     
 public:
@@ -126,17 +135,27 @@ int main(int argc, char** argv) {
         std::cerr << "init relication state info failure." << std::endl;
         return -1;
     }
+    cout<<"init relication state info successful "<<endl;
     
     // load Replication Patterns info
     if(false == ReplicationPatterns::get_instance().load()) {
         std::cerr << "init relication patterns info failure." << std::endl;
         return -1;
     }
+    cout<<"init relication patterns info successful "<<endl;
+    
+    // init Dispatcher and connect mysql database
+    if(false == Dispatcher::get_instance().load())
+    {
+        std::cerr << "init dispatcher and connect mysql database failure." << std::endl;
+        return -1;
+    }
+    cout<<"init dispatcher info successful "<<endl;
     
     // concat command string
     SourceNode& source_node = ReplicationPatterns::get_instance().get_source_node();
     string source_driver    = ReplicationPatterns::get_instance().get_command_line(source_node);
-    std::cout << "sourcer driver command line:" << source_driver.c_str() << std::endl;
+    std::cout << "source driver command line:" << source_driver.c_str() << std::endl;
     Binary_log binlog(create_transport(source_driver.c_str()));
     
     // bind query process
@@ -157,13 +176,16 @@ int main(int argc, char** argv) {
     result = binlog.set_position(source_node.bin_log_file, source_node.position);
     if (ERR_OK != result )
     {
-        std::cerr << "set bin log position failure." << std::endl;
+        std::cerr <<"set bin log position failure. error code:"<<result<<" error desc:"<<str_error(result)
+                  <<"; file: "<<source_node.bin_log_file<<"; pos:"<<source_node.position<<std::endl;
+        binlog.disconnect();
         return -1;
     }
     
     ulong currrent_pos = 0;
        
-    while (true) {
+    while (true) 
+    {
         Binary_log_event *event = NULL;
         result = binlog.wait_for_next_event(&event);
         if (result != ERR_OK)
@@ -194,4 +216,6 @@ int main(int argc, char** argv) {
         if(event != NULL)
             delete event;
     }
+    
+    binlog.disconnect();
 }   

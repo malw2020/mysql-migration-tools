@@ -60,21 +60,16 @@ public:
         
         if(strcmp(ev->query.c_str(), "BEGIN") == 0)
             return ev;
-        
-        std::cout<<"database:"<<ev->db_name <<"; query:"<<ev->query<<std::endl;
+    
+        Log::get_instance().log().info("database:%s, query:%s", ev->db_name.c_str(), ev->query.c_str());
         if(validate_database(ev->db_name))
         {
-            printf("replication data to mysql node.\n");
-            if (false == Dispatcher::get_instance().replicate(master_info, ev->query)) {
-                printf("replication data to mysql failure.\n");
+            if (false == Dispatcher::get_instance().replicate(master_info, ev->query)) 
+            {
                 return NULL;
             } 
         }
-        else
-        {
-            printf("replication data to mysql node -- ignore.\n");
-        }
-        
+                
         return ev;
     }
     
@@ -84,8 +79,7 @@ public:
         result = find(source_node.replicate_ignore_db.begin(), source_node.replicate_ignore_db.end(), database);
         if(result != source_node.replicate_ignore_db.end())
             return false;
-        
-        printf("%s does not exist ignore db.\n", database.c_str());                
+                    
         result = find(source_node.replicate_do_db.begin() , source_node.replicate_do_db.end(), database);
         if(result == source_node.replicate_do_db.end())
             return false;
@@ -177,7 +171,7 @@ int main(int argc, char** argv) {
     int result =  binlog.connect(source_node.bin_log_file, source_node.position);
     if(ERR_OK != result)
     {
-        std::cerr << "connect to master failure." << std::endl;
+        Log::get_instance().log().error("connect to master failure.");
         return -1;
     }
     
@@ -194,12 +188,11 @@ int main(int argc, char** argv) {
             break;
         }
             
-        cout<<"evnet type:"<<static_cast<int>(event->get_event_type())<<endl;
+        Log::get_instance().log().info("event type: %d", static_cast<int>(event->get_event_type()));
         switch (event->get_event_type()) {
             case QUERY_EVENT:
                 break;
             case ROTATE_EVENT:
-                std::cout<<rotate_var.replication_info.bin_log_file<<"  "<<rotate_var.replication_info.position<<std::endl;
                 break;
             case FORMAT_DESCRIPTION_EVENT:
                 break;
@@ -208,7 +201,6 @@ int main(int argc, char** argv) {
         }
         
         currrent_pos = binlog.get_position();
-        std::cout<<"current pos:"<<currrent_pos<<endl;
         rotate_var.update_binlog_pos(currrent_pos);
         
         if(event != NULL)

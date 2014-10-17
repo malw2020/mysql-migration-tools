@@ -18,7 +18,7 @@ CXX_LIB_PATH =
 OBJ_STATIC = ../lib/libcommon.a
 OBJ_SHARE = ../lib/libcommon.so
 
-LDLIBS = -llog4cpp 
+LDLIBS = 
 
 all: ../lib/libcommon.a ../lib/libcommon.so
 

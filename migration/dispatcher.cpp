@@ -1,5 +1,6 @@
 #include "dispatcher.h"
 #include "replication_patterns.h"
+#include "../lib_common/log.h"
 
 #include <stdlib.h>
 #include <time.h>
@@ -104,7 +105,6 @@ int Dispatcher::get_one_to_many_rand_seed(unsigned int max)
 
 bool Dispatcher::load_ono_to_one()
 {
-    cout<<"enter load_ono_to_one"<<endl;
     std::vector<SourceNode>& source_nodes = ReplicationPatterns::get_instance().source_nodes;
     for(unsigned int index=0; index<source_nodes.size(); ++index)
     {
@@ -117,7 +117,6 @@ bool Dispatcher::load_ono_to_one()
         if(0 == destination_nodes.size())
             return false;
         
-        cout<<"init adapter "<<destination_nodes[0].ip<<"  "<<destination_nodes[0].port<<endl;
         MySQLAdapter *adapter = new MySQLAdapter(destination_nodes[0].ip, destination_nodes[0].port, 
                                                  destination_nodes[0].user, destination_nodes[0].password, 
                                                  destination_nodes[0].database);  
@@ -125,14 +124,10 @@ bool Dispatcher::load_ono_to_one()
             return false;
         
         adapter_sets->push_back(adapter);
-        cout<<"exit load_ono_to_one .."<<endl;
         
-        master_mysql_adapters.insert(std::pair<MasterInfo, MySQLAdapterSets*>(master, adapter_sets));
-        cout<<"exit load_ono_to_one ..."<<endl;
-        
+        master_mysql_adapters.insert(std::pair<MasterInfo, MySQLAdapterSets*>(master, adapter_sets));        
     }
-    cout<<"exit load_ono_to_one"<<endl;
-     
+         
     return true;
 }
 

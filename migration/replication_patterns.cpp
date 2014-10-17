@@ -1,4 +1,5 @@
 #include "replication_patterns.h"
+#include "../lib_common/log.h"
 #include "../lib_common/file.h"
 #include "../lib_common/directory.h"
 #include "../lib_common/ini_file.h"
@@ -27,30 +28,30 @@ bool ReplicationState::init_relication_info() {
     
     string patterns_abs_path = currentPath + patterns_file;
     if (false == File::exist(patterns_abs_path)) {
-        printf("patterns file not exist. file path:%s.\n", patterns_abs_path.c_str()); 
+        Log::get_instance().log().error("patterns file not exist. file path:%s.", patterns_abs_path.c_str()); 
         return false;
     }
     
     TiXmlDocument doc_patterns(patterns_abs_path.c_str());  
     if(false == doc_patterns.LoadFile())
     {
-        printf("load patterns file failure. file:%s, error info:%s.\n", 
-                patterns_abs_path.c_str(),
-                doc_patterns.ErrorDesc()); 
+        Log::get_instance().log().error("load patterns file failure. file:%s, error info:%s.", 
+                                         patterns_abs_path.c_str(),
+                                         doc_patterns.ErrorDesc()); 
         return false;
     }
     
     TiXmlElement *root_element = doc_patterns.RootElement();  
     if(root_element == NULL)
     {
-        printf("get root element failure. \n"); 
+        Log::get_instance().log().error("get root element failure."); 
         return false;
     }
     
     TiXmlElement *sources_element = root_element->FirstChildElement("Sources");
     if(sources_element == NULL)
     {
-        printf("get sources element failure.\n"); 
+        Log::get_instance().log().error("get sources element failure."); 
         return false;
     }
     
@@ -100,34 +101,34 @@ bool ReplicationState::save_replication_info()
            
     IniFile inifile(replication_state_abs_path);
     if(0 == inifile.write_profile_string("ErrorInfo", "Description", error_description)){
-        printf("save replication info error desc failure.\n");
+        Log::get_instance().log().error("save replication info error desc failure.");
         return false;
     }
     
     if(0 == inifile.write_profile_string("ErrorInfo", "IP", error_ip)){
-        printf("save replication info error IP failure.\n");
+        Log::get_instance().log().error("save replication info error IP failure.");
         return false;
     }
     
     if(0 == inifile.write_profile_string("ErrorInfo", "Port", error_port)){
-        printf("save replication info error port failure.\n");
+        Log::get_instance().log().error("save replication info error port failure.");
         return false;
     }
     
     if(0 == inifile.write_profile_string("ErrorInfo", "BinLogFile", error_bin_log_file)){
-        printf("save replication info error bin log file failure.\n");
+        Log::get_instance().log().error("save replication info error bin log file failure.");
         return false;
     }
     
     stringstream ss_error;
     ss_error<<error_position;
     if(0 == inifile.write_profile_string("ErrorInfo", "Position", ss_error.str())){
-        printf("save replication info error position failure.\n");
+        Log::get_instance().log().error("save replication info error position failure.");
         return false;
     }
     
     if(0 == inifile.write_profile_string("ErrorInfo", "Description", error_description)){
-        printf("save replication info error desc failure.\n");
+        Log::get_instance().log().error("save replication info error desc failure.");
         return false;
     }
     
@@ -136,14 +137,14 @@ bool ReplicationState::save_replication_info()
     {
         string section = "Replication_" + get_master_desc(iterator_replications->first);
         if(0 == inifile.write_profile_string(section, "BinLogFile", iterator_replications->second.bin_log_file)){
-            printf("save replication info node file failure.\n");
+            Log::get_instance().log().error("save replication info node file failure.");
             return false;
         }
         
         stringstream ss_node_pos;
         ss_node_pos<<iterator_replications->second.position;
         if(0 == inifile.write_profile_string(section, "Position", ss_node_pos.str())){
-            printf("save replication info node position failure.\n");
+            Log::get_instance().log().error("save replication info node position failure.");
             return false;
         }
     }
@@ -164,14 +165,14 @@ bool ReplicationState::save_replication_info(MasterInfo& master, ReplicationInfo
     IniFile inifile(replication_state_abs_path);
     if(0 == inifile.write_profile_string("ErrorInfo", "Description", error_description))
     {
-        printf("save replication info error desc failure.\n");
+        Log::get_instance().log().error("save replication info error desc failure.");
         return false;
     }
     
     string section = "Replication_" + get_master_desc(master);
     if(0 == inifile.write_profile_string(section, "BinLogFile", replication.bin_log_file))
     {
-         printf("save replication info node file failure.\n");
+         Log::get_instance().log().error("save replication info node file failure.");
          return false;
     }
         
@@ -179,7 +180,7 @@ bool ReplicationState::save_replication_info(MasterInfo& master, ReplicationInfo
     ss_node_pos<<replication.position;
     if(0 == inifile.write_profile_string(section, "Position", ss_node_pos.str()))
     {
-         printf("save replication info node position failure.\n");
+         Log::get_instance().log().error("save replication info node position failure.");
          return false;
     }
     
@@ -220,14 +221,14 @@ bool ReplicationPatterns::load()
     
     string patterns_abs_path = currentPath + patterns_file;
     if (false == File::exist(patterns_abs_path)) {
-        printf("load replication patterns, patterns file not exist. file path:%s.\n", patterns_abs_path.c_str()); 
+        Log::get_instance().log().error("load replication patterns, patterns file not exist. file path:%s.", patterns_abs_path.c_str()); 
         return false;
     }
     
     TiXmlDocument doc_patterns(patterns_abs_path.c_str());  
     if(false == doc_patterns.LoadFile())
     {
-        printf("load replication patterns, load file failure. file:%s, error info:%s.\n", 
+        Log::get_instance().log().error("load replication patterns, load file failure. file:%s, error info:%s.", 
                 patterns_abs_path.c_str(),
                 doc_patterns.ErrorDesc()); 
         return false;
@@ -236,28 +237,28 @@ bool ReplicationPatterns::load()
     TiXmlElement *root_element = doc_patterns.RootElement();  
     if(root_element == NULL)
     {
-        printf("get root element failure. \n"); 
+        Log::get_instance().log().error("get root element failure."); 
         return false;
     }
     
     TiXmlElement *mode_element = root_element->FirstChildElement("Mode");
     if(false == load_modes(mode_element))
     {
-        printf("load mode element failure.\n"); 
+        Log::get_instance().log().error("load mode element failure."); 
         return false;
     }
     
     TiXmlElement *sources_element = root_element->FirstChildElement("Sources");
     if(false == load_sources(sources_element))
     {
-        printf("load sources element failure.\n"); 
+        Log::get_instance().log().error("load sources element failure."); 
         return false;
     }
     
     TiXmlElement *destinations_element = root_element->FirstChildElement("Destinations");
     if(false == load_destinations(destinations_element))
     {
-        printf("load destinations element failure.\n"); 
+        Log::get_instance().log().error("load destinations element failure."); 
         return false;
     }
      
@@ -269,15 +270,14 @@ bool ReplicationPatterns::load_modes(TiXmlElement *mode_node)
 {
     if(NULL == mode_node)
     {
-        printf("mode element is NULL.\n"); 
+        Log::get_instance().log().error("mode element is NULL."); 
         return false;
     }
     
     string mode_type = mode_node->Attribute("type");  
-    printf("mode type = %s.\n", mode_type.c_str());
+    Log::get_instance().log().info("mode type = %s.", mode_type.c_str());
     
     mode = atoi(mode_type.c_str());
-       
     return true;
 }
 
@@ -285,7 +285,7 @@ bool ReplicationPatterns::load_sources(TiXmlElement *sources_node)
 {
     if(NULL == sources_node)
     {
-        printf("sources element is NULL.\n"); 
+        Log::get_instance().log().error("sources element is NULL.\n"); 
         return false;
     }
     
@@ -357,7 +357,7 @@ bool ReplicationPatterns::load_destinations(TiXmlElement *destinations_node)
 {
     if(NULL == destinations_node)
     {
-        printf("destinations element is NULL.\n"); 
+        Log::get_instance().log().error("destinations element is NULL."); 
         return false;
     }
     

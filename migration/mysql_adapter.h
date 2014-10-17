@@ -75,7 +75,7 @@ private:
     int reconn_counter;         // try to connector, if reconn less than 10
 };
 
-typedef std::vector<MySQLAdapter> MySQLAdapterSets;
+typedef std::vector<MySQLAdapter*> MySQLAdapterSets;
 
 #endif	/* MYSQL_ADAPTER_H */
 

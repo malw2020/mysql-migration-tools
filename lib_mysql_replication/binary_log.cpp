@@ -120,9 +120,9 @@ ulong Binary_log::get_position(std::string &filename)
   return m_binlog_position;
 }
 
-int Binary_log::connect(ulong pos)
+int Binary_log::connect(std::string &filename, ulong pos)
 {
-  return m_driver->connect((const std::string&)"", pos);
+  return m_driver->connect(filename, pos);
 }
 
 int Binary_log::disconnect()

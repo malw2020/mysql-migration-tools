@@ -131,7 +131,7 @@ public:
   Binary_log(system::Binary_log_driver *drv);
   ~Binary_log() {}
   int connect();
-  int connect(ulong position);
+  int connect(std::string &filename, ulong position);
 
   /**
    * Blocking attempt to get the next binlog event from the stream

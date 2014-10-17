@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 */
 
 #include "../lib_mysql_replication/binlog_api.h"
+#include "../lib_common/log.h"
 #include "../lib_common/sys_exception.h"
 #include "../lib_common/ini_file.h"
 #include "../lib_common/directory.h"
@@ -63,10 +64,15 @@ public:
         std::cout<<"database:"<<ev->db_name <<"; query:"<<ev->query<<std::endl;
         if(validate_database(ev->db_name))
         {
+            printf("replication data to mysql node.\n");
             if (false == Dispatcher::get_instance().replicate(master_info, ev->query)) {
                 printf("replication data to mysql failure.\n");
                 return NULL;
             } 
+        }
+        else
+        {
+            printf("replication data to mysql node -- ignore.\n");
         }
         
         return ev;
@@ -76,14 +82,15 @@ public:
     {
         vector<string>::const_iterator result;
         result = find(source_node.replicate_ignore_db.begin(), source_node.replicate_ignore_db.end(), database);
-        if(result != source_node.replicate_do_db.end())
+        if(result != source_node.replicate_ignore_db.end())
             return false;
-                
+        
+        printf("%s does not exist ignore db.\n", database.c_str());                
         result = find(source_node.replicate_do_db.begin() , source_node.replicate_do_db.end(), database);
         if(result == source_node.replicate_do_db.end())
-            return true;
-        else
             return false;
+        else
+            return true;
     }
     
 public:
@@ -130,34 +137,35 @@ public:
 
 //Usage: mysqlreplication mysql://dddd:dddd@192.168.1.197:3306
 int main(int argc, char** argv) {
+    Log::get_instance().log().info("mysql-migration-tool start...");
     // load ReplicationState info
     if(false == ReplicationState::get_instance().init_relication_info()) {
-        std::cerr << "init relication state info failure." << std::endl;
+        Log::get_instance().log().error("init relication state info failure.");
         return -1;
     }
-    cout<<"init relication state info successful "<<endl;
+    Log::get_instance().log().info("init relication state info successful.");
     
     // load Replication Patterns info
     if(false == ReplicationPatterns::get_instance().load()) {
-        std::cerr << "init relication patterns info failure." << std::endl;
+        Log::get_instance().log().error("init relication patterns info failure.");
         return -1;
     }
-    cout<<"init relication patterns info successful "<<endl;
+    Log::get_instance().log().info("init relication patterns info successful.");
     
     // init Dispatcher and connect mysql database
     if(false == Dispatcher::get_instance().load())
     {
-        std::cerr << "init dispatcher and connect mysql database failure." << std::endl;
+        Log::get_instance().log().error("init dispatcher and connect mysql database failure.");
         return -1;
     }
-    cout<<"init dispatcher info successful "<<endl;
+    Log::get_instance().log().info("init dispatcher and connect mysql database successful.");
     
     // concat command string
     SourceNode& source_node = ReplicationPatterns::get_instance().get_source_node();
     string source_driver    = ReplicationPatterns::get_instance().get_command_line(source_node);
-    std::cout << "source driver command line:" << source_driver.c_str() << std::endl;
     Binary_log binlog(create_transport(source_driver.c_str()));
-    
+    Log::get_instance().log().info("source driver command line:%s", source_driver.c_str());
+
     // bind query process
     QueryVariables query_var(source_node);
     binlog.content_handler_pipeline()->push_back(&query_var);
@@ -166,24 +174,14 @@ int main(int argc, char** argv) {
     RotateVariables rotate_var(source_node);
     binlog.content_handler_pipeline()->push_back(&rotate_var);
     
-    int result =  binlog.connect();
+    int result =  binlog.connect(source_node.bin_log_file, source_node.position);
     if(ERR_OK != result)
     {
         std::cerr << "connect to master failure." << std::endl;
         return -1;
     }
     
-    result = binlog.set_position(source_node.bin_log_file, source_node.position);
-    if (ERR_OK != result )
-    {
-        std::cerr <<"set bin log position failure. error code:"<<result<<" error desc:"<<str_error(result)
-                  <<"; file: "<<source_node.bin_log_file<<"; pos:"<<source_node.position<<std::endl;
-        binlog.disconnect();
-        return -1;
-    }
-    
-    ulong currrent_pos = 0;
-       
+    ulong currrent_pos = 0;    
     while (true) 
     {
         Binary_log_event *event = NULL;

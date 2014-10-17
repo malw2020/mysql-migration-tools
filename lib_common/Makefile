@@ -18,15 +18,17 @@ CXX_LIB_PATH =
 OBJ_STATIC = ../lib/libcommon.a
 OBJ_SHARE = ../lib/libcommon.so
 
-LDLIBS = 
+LDLIBS = -llog4cpp 
 
 all: ../lib/libcommon.a ../lib/libcommon.so
 
-OBJS = sys_exception.o \
+OBJS = log.o sys_exception.o \
 	exception_stack_trace.o \
 	ini_file.o \
 	directory.o \
 	file.o \
+	datetime.o \
+	
 					
 %o: %c
 	$(CCC) $(CCFLAGS) $(CXX_H_PATH) -c -o  $@ $<

@@ -20,8 +20,8 @@ public:
     ~Directory();
    
 public:
-    static int getCurrentPath(string &path);
-    static int listDir(string strDir, vector<string> &files, bool onlyFile = true);
+    static int get_current_path(string &path);
+    static int list_dir(string strDir, vector<string> &files, bool onlyFile = true);
     
 };
 

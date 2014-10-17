@@ -232,7 +232,7 @@ void Binlog_tcp_driver::start_binlog_dump(const char *binlog_name,
   uchar buf[1024];
   char *binlog_pos;
   ushort binlog_flags= 0;
-  int server_id= 1;
+  int server_id= 6;
   size_t binlog_name_length;
   m_mysql->status= MYSQL_STATUS_READY;
   int4store(buf, long(offset));

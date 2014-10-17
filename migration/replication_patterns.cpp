@@ -23,7 +23,7 @@ ReplicationState& ReplicationState::get_instance()
 
 bool ReplicationState::init_relication_info() {
     string currentPath = "";
-    Directory::getCurrentPath(currentPath); 
+    Directory::get_current_path(currentPath); 
     
     string patterns_abs_path = currentPath + patterns_file;
     if (false == File::exist(patterns_abs_path)) {
@@ -94,7 +94,7 @@ bool ReplicationState::update_replication_state(MasterInfo& master, ReplicationI
 bool ReplicationState::save_replication_info()
 {
     string currentPath = "";
-    Directory::getCurrentPath(currentPath); 
+    Directory::get_current_path(currentPath); 
     
     string replication_state_abs_path = currentPath + replication_state_file;
            
@@ -157,7 +157,7 @@ bool ReplicationState::save_replication_info(MasterInfo& master, ReplicationInfo
         return false;
     
     string currentPath = "";
-    Directory::getCurrentPath(currentPath); 
+    Directory::get_current_path(currentPath); 
     
     string replication_state_abs_path = currentPath + replication_state_file;
            
@@ -216,7 +216,7 @@ ReplicationPatterns& ReplicationPatterns::get_instance()
 bool ReplicationPatterns::load() 
 {
     string currentPath = "";
-    Directory::getCurrentPath(currentPath); 
+    Directory::get_current_path(currentPath); 
     
     string patterns_abs_path = currentPath + patterns_file;
     if (false == File::exist(patterns_abs_path)) {

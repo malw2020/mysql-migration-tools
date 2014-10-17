@@ -9,7 +9,7 @@
 
 #define  MAX_PATH 260
 
-int Directory::getCurrentPath(string &path)
+int Directory::get_current_path(string &path)
 {
     char buf[MAX_PATH] = {'\0'};
     char pidfile[64];
@@ -33,7 +33,7 @@ int Directory::getCurrentPath(string &path)
     return 0;
 }
 
-int Directory::listDir(string strDir, vector<string> &files, bool onlyFile)
+int Directory::list_dir(string strDir, vector<string> &files, bool onlyFile)
 {
     struct dirent *entry;
     DIR *dir = opendir(strDir.c_str());

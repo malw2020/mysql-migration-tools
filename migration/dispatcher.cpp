@@ -40,7 +40,7 @@ bool Dispatcher::replicate(MasterInfo &master, string sql_cmd)
             break;
     }
     
-    if(false == (*adapter_sets)[rand_index].query(sql_cmd))
+    if(false == (*adapter_sets)[rand_index]->query(sql_cmd))
     {
         return false;
     }
@@ -80,7 +80,7 @@ bool Dispatcher::unload()
         MySQLAdapterSets *adapter_sets = iterator_master_adapters->second;
         for(unsigned int index=0; index<adapter_sets->size(); ++index)
         {
-            (*adapter_sets)[index].disconnect();
+            (*adapter_sets)[index]->disconnect();
         }
     }
     return true;
@@ -118,10 +118,10 @@ bool Dispatcher::load_ono_to_one()
             return false;
         
         cout<<"init adapter "<<destination_nodes[0].ip<<"  "<<destination_nodes[0].port<<endl;
-        MySQLAdapter adapter(destination_nodes[0].ip, destination_nodes[0].port, 
-                             destination_nodes[0].user, destination_nodes[0].password, 
-                             destination_nodes[0].database);  
-        if(false == adapter.connect())
+        MySQLAdapter *adapter = new MySQLAdapter(destination_nodes[0].ip, destination_nodes[0].port, 
+                                                 destination_nodes[0].user, destination_nodes[0].password, 
+                                                 destination_nodes[0].database);  
+        if(false == adapter->connect())
             return false;
         
         adapter_sets->push_back(adapter);
@@ -152,10 +152,10 @@ bool Dispatcher::load_one_to_many()
         
         for (unsigned int dest_index=0; dest_index<destination_nodes.size(); ++dest_index)
         {
-             MySQLAdapter adapter(destination_nodes[dest_index].ip, destination_nodes[dest_index].port, 
-                             destination_nodes[dest_index].user, destination_nodes[dest_index].password, 
-                             destination_nodes[dest_index].database);  
-             if (false == adapter.connect())
+             MySQLAdapter *adapter = new MySQLAdapter(destination_nodes[dest_index].ip, destination_nodes[dest_index].port, 
+                                                      destination_nodes[dest_index].user, destination_nodes[dest_index].password, 
+                                                      destination_nodes[dest_index].database);  
+             if (false == adapter->connect())
                  return false;
         
              adapter_sets->push_back(adapter);

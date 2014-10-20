@@ -42,6 +42,8 @@ using mysql::User_var_event;
 
 SignalTranslator<SegmentationFaultException> g_objSegmentationFaultTranslator;
 SignalTranslator<FloatingPointFaultException> g_objFloatingPointExceptionTranslator;
+SignalTranslator<SigINTException>             g_objSigINTExceptionTranslator;
+
 ExceptionHandler g_objExceptionHandler;
 
 
@@ -67,6 +69,7 @@ public:
         {
             if (false == Dispatcher::get_instance().replicate(master_info, ev->query)) 
             {
+                Log::get_instance().log().error("query failure, database:%s, query:%s.", ev->db_name.c_str(), ev->query.c_str());
                 return NULL;
             } 
         }
@@ -186,7 +189,14 @@ int main(int argc, char** argv)
         Binary_log_event *event = NULL;
         result = binlog.wait_for_next_event(&event);
         if (result != ERR_OK)
+        {
+            Log::get_instance().log().info("wait for next event error, error code: %d", result);
             break;
+        }
+        else
+        {
+            
+        }
                
         if(event == NULL)
         {

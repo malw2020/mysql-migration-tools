@@ -19,8 +19,7 @@ bool MySQLAdapter::query(string sql_cmd) {
         { 
             num_fields = mysql_num_fields(result);
             mysql_free_result(result);
-                return true;
-             
+            return true; 
         }
         else 
         {              
@@ -33,7 +32,7 @@ bool MySQLAdapter::query(string sql_cmd) {
             else if (mysql_field_count(handle_mysql) == 0) 
             {
                 num_rows = mysql_affected_rows(handle_mysql);
-                Log::get_instance().log().info("Query OK, %d row affected.", num_rows);
+                Log::get_instance().log().info("query OK, %d row affected.", num_rows);
                 return true;     
             }
             else 

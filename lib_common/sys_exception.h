@@ -18,6 +18,8 @@
 
 using namespace std;
 
+typedef int (*exception_hook)(); 
+
 /***************************************************/
 // ExceptionTracer: 异常对象构造函数中生成一个堆栈跟踪
 class ExceptionTracer
@@ -25,8 +27,26 @@ class ExceptionTracer
 public:
     ExceptionTracer()
     {
+        hook_process = NULL;
 	ExceptionStackTrace::get_instance()->output();
     }
+    
+public:
+    void set(exception_hook hook)
+    {
+        hook_process = hook;
+    }
+    
+    virtual void hook()
+    {
+        if(NULL != hook_process)
+        {
+            hook_process();
+        }
+    }
+    
+protected:
+    exception_hook hook_process;
 };
 
 /***************************************************/
@@ -71,6 +91,14 @@ class FloatingPointFaultException : public ExceptionTracer, public exception
 public:
     static int GetSignalNumber() {return SIGFPE;}
 };
+
+/***************************************************/
+// SigINTException: Detect SIGINT
+class SigINTException : public ExceptionTracer, public exception
+{
+public:
+    static int GetSignalNumber() {return SIGINT;}
+};
  
 class ExceptionHandler
 {
@@ -90,13 +118,20 @@ private:
                 // re-throw
                 throw;
             }
-            catch (SegmentationFaultException &)
-            {
+            catch (SegmentationFaultException & execption)
+            {                
                 cout << "SegmentationFaultException Was Detected." << endl;
+                execption.hook();
             }
-            catch (FloatingPointFaultException &)
+            catch (FloatingPointFaultException &execption)
             {
                 cout << "FloatingPointFaultException Was Detected." << endl;
+                execption.hook();
+            }
+            catch (SigINTException &execption)
+            {
+                cout << "SigINTException Was Detected." << endl;
+                execption.hook();
             }
             catch (...)
             {

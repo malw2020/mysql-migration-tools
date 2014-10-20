@@ -54,7 +54,8 @@ public:
         master_info.port = node.port;
     }
 
-    Binary_log_event *process_event(Query_event *ev) {
+    Binary_log_event *process_event(Query_event *ev) 
+    {
         if(ev == NULL)
             return NULL;
         
@@ -103,7 +104,8 @@ public:
         replication_info.position     = node.position;
     }
 
-    Binary_log_event *process_event(Rotate_event *ev) {
+    Binary_log_event *process_event(Rotate_event *ev)
+    {
         if(ev == NULL)
             return NULL;
 
@@ -130,17 +132,20 @@ public:
 
 
 //Usage: mysqlreplication mysql://dddd:dddd@192.168.1.197:3306
-int main(int argc, char** argv) {
+int main(int argc, char** argv) 
+{
     Log::get_instance().log().info("mysql-migration-tool start...");
     // load ReplicationState info
-    if(false == ReplicationState::get_instance().init_relication_info()) {
+    if(false == ReplicationState::get_instance().init_relication_info()) 
+    {
         Log::get_instance().log().error("init relication state info failure.");
         return -1;
     }
     Log::get_instance().log().info("init relication state info successful.");
     
     // load Replication Patterns info
-    if(false == ReplicationPatterns::get_instance().load()) {
+    if(false == ReplicationPatterns::get_instance().load()) 
+    {
         Log::get_instance().log().error("init relication patterns info failure.");
         return -1;
     }
@@ -189,7 +194,8 @@ int main(int argc, char** argv) {
         }
             
         Log::get_instance().log().info("event type: %d", static_cast<int>(event->get_event_type()));
-        switch (event->get_event_type()) {
+        switch (event->get_event_type()) 
+        {
             case QUERY_EVENT:
                 break;
             case ROTATE_EVENT:

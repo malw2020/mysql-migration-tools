@@ -15,26 +15,32 @@ bool MySQLAdapter::query(string sql_cmd) {
     { 
         // query succeeded, process any data returned by it
         result = mysql_store_result(handle_mysql);
-        if (NULL == result)
+        if (NULL != result)
         { 
             num_fields = mysql_num_fields(result);
             mysql_free_result(result);
-            return true;
+                return true;
+             
         }
         else 
-        { 
-            // mysql_store_result() returned nothing
-            if (mysql_field_count(handle_mysql) == 0) 
+        {              
+            if(0 != mysql_errno(handle_mysql))
             {
-                // query does not return data (it was not a SELECT)
+                Log::get_instance().log().error("reading of the result set failed. sql cmd:%s, error code: %d, error desc: %s.", 
+                        sql_cmd.c_str(), mysql_errno(handle_mysql), mysql_error(handle_mysql));   
+                return false;
+            }
+            else if (mysql_field_count(handle_mysql) == 0) 
+            {
                 num_rows = mysql_affected_rows(handle_mysql);
-                return true;
+                Log::get_instance().log().info("Query OK, %d row affected.", num_rows);
+                return true;     
             }
             else 
             { 
                 // mysql_store_result() should have returned data
-                Log::get_instance().log().error("failed to get field count, sql cmd:%s, error desc: %s.", sql_cmd.c_str(), mysql_error(handle_mysql));             
-            }
+                Log::get_instance().log().error("unknown error, sql cmd:%s, error desc: %s.", sql_cmd.c_str(), mysql_error(handle_mysql));             
+            }          
         }
     }
               

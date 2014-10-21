@@ -18,7 +18,7 @@
 
 using namespace std;
 
-typedef int (*exception_hook)(); 
+typedef void (*exception_hook)(); 
 
 /***************************************************/
 // ExceptionTracer: 异常对象构造函数中生成一个堆栈跟踪
@@ -27,17 +27,16 @@ class ExceptionTracer
 public:
     ExceptionTracer()
     {
-        hook_process = NULL;
 	ExceptionStackTrace::get_instance()->output();
     }
     
 public:
-    void set(exception_hook hook)
+    static void set(exception_hook hook)
     {
         hook_process = hook;
     }
     
-    virtual void hook()
+    static void hook()
     {
         if(NULL != hook_process)
         {
@@ -46,8 +45,10 @@ public:
     }
     
 protected:
-    exception_hook hook_process;
+    static exception_hook hook_process;
 };
+
+exception_hook ExceptionTracer::hook_process = NULL;
 
 /***************************************************/
 // SignalExceptionClass，提供了表示内核可能发出信号的 C++ 异常的抽象
@@ -73,6 +74,11 @@ public:
     SignalTranslator()
     {
         static SingleTonTranslator s_objTranslator;
+    }
+    
+    void set(exception_hook hook)
+    {
+        SignalExceptionClass::set(hook);
     }
  };
 

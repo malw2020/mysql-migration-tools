@@ -18,149 +18,62 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 02110-1301  USA
 */
 
-#include "../lib_mysql_replication/binlog_api.h"
+#include "main.h"
+#include "mysql_replication.h"
 #include "../lib_common/log.h"
-#include "../lib_common/sys_exception.h"
-#include "../lib_common/ini_file.h"
-#include "../lib_common/directory.h"
-#include "replication_patterns.h"
-#include "dispatcher.h"
-
-#include <iostream>
-#include <sstream>
-#include <map>
-#include <string>
-#include <string.h>
-#include <algorithm>
 
 using namespace std;
 
-using mysql::Binary_log;
-using mysql::system::create_transport;
-using mysql::system::get_event_type_str;
-using mysql::User_var_event;
-
-SignalTranslator<SegmentationFaultException> g_objSegmentationFaultTranslator;
-SignalTranslator<FloatingPointFaultException> g_objFloatingPointExceptionTranslator;
-SignalTranslator<SigINTException>             g_objSigINTExceptionTranslator;
-
-ExceptionHandler g_objExceptionHandler;
-
-
-class QueryVariables : public Content_handler {
-public:
-    QueryVariables(SourceNode& node)
-    {
-        source_node = node;
-        master_info.ip   = node.ip;
-        master_info.port = node.port;
-    }
-
-    Binary_log_event *process_event(Query_event *ev) 
-    {
-        if(ev == NULL)
-            return NULL;
-        
-        if(strcmp(ev->query.c_str(), "BEGIN") == 0)
-            return ev;
-    
-        Log::get_instance().log().info("database:%s, query:%s", ev->db_name.c_str(), ev->query.c_str());
-        if(validate_database(ev->db_name))
-        {
-            if (false == Dispatcher::get_instance().replicate(master_info, ev->query)) 
-            {
-                Log::get_instance().log().error("query failure, database:%s, query:%s.", ev->db_name.c_str(), ev->query.c_str());
-                return NULL;
-            } 
-        }
-                
-        return ev;
-    }
-    
-    bool validate_database(string database)
-    {
-        vector<string>::const_iterator result;
-        result = find(source_node.replicate_ignore_db.begin(), source_node.replicate_ignore_db.end(), database);
-        if(result != source_node.replicate_ignore_db.end())
-            return false;
-                    
-        result = find(source_node.replicate_do_db.begin() , source_node.replicate_do_db.end(), database);
-        if(result == source_node.replicate_do_db.end())
-            return false;
-        else
-            return true;
-    }
-    
-public:
-    SourceNode source_node;
-    MasterInfo master_info;
-};
-
-class RotateVariables : public Content_handler {
-public:
-    RotateVariables(SourceNode& node)
-    {
-        source_node = node;
-        master_info.ip   = node.ip;
-        master_info.port = node.port;
-        replication_info.bin_log_file = node.bin_log_file;
-        replication_info.position     = node.position;
-    }
-
-    Binary_log_event *process_event(Rotate_event *ev)
-    {
-        if(ev == NULL)
-            return NULL;
-
-        replication_info.bin_log_file = ev->binlog_file;
-        replication_info.position     = ev->binlog_pos;
-        
-        ReplicationState::get_instance().save_replication_info(master_info, replication_info);
-                   
-        return ev;
-    }
-    
-    bool update_binlog_pos(ulong pos)
-    {
-        replication_info.position = pos;
-        ReplicationState::get_instance().save_replication_info(master_info, replication_info);
-        return true;
-    }
-    
-public:
-    SourceNode source_node;
-    MasterInfo master_info;
-    ReplicationInfo replication_info;
-};
-
-
-//Usage: mysqlreplication mysql://dddd:dddd@192.168.1.197:3306
-int main(int argc, char** argv) 
+void save_replication_state()
 {
-    Log::get_instance().log().info("mysql-migration-tool start...");
+    if(true == ReplicationState::get_instance().save_replication_info())
+        Log::get_instance().log().info("save replication state info successful.");
+    else
+        Log::get_instance().log().info("save replication state info failure.");
+}
+
+bool sys_init()
+{
     // load ReplicationState info
     if(false == ReplicationState::get_instance().init_relication_info()) 
     {
-        Log::get_instance().log().error("init relication state info failure.");
-        return -1;
+        Log::get_instance().log().error("init replication state info failure.");
+        return false;
     }
-    Log::get_instance().log().info("init relication state info successful.");
+    Log::get_instance().log().info("init replication state info successful.");
     
     // load Replication Patterns info
     if(false == ReplicationPatterns::get_instance().load()) 
     {
-        Log::get_instance().log().error("init relication patterns info failure.");
-        return -1;
+        Log::get_instance().log().error("init replication patterns info failure.");
+        return false;
     }
-    Log::get_instance().log().info("init relication patterns info successful.");
+    Log::get_instance().log().info("init replication patterns info successful.");
     
     // init Dispatcher and connect mysql database
     if(false == Dispatcher::get_instance().load())
     {
         Log::get_instance().log().error("init dispatcher and connect mysql database failure.");
-        return -1;
+        return false;
     }
     Log::get_instance().log().info("init dispatcher and connect mysql database successful.");
+    
+    // set exception hook
+    g_objSegmentationFaultTranslator.set(save_replication_state);
+    g_objFloatingPointExceptionTranslator.set(save_replication_state);
+    g_objSigINTExceptionTranslator.set(save_replication_state);
+    
+    return true;
+}
+
+//Usage: mysqlreplication mysql://dddd:dddd@192.168.1.197:3306
+int main(int argc, char** argv) 
+{
+    Log::get_instance().log().info("mysql-migration-tool start...");
+        
+    // init system
+    if(false == sys_init())
+        return -1;
     
     // concat command string
     SourceNode& source_node = ReplicationPatterns::get_instance().get_source_node();
@@ -175,6 +88,9 @@ int main(int argc, char** argv)
     // bind rotate process, change binlog file and position
     RotateVariables rotate_var(source_node);
     binlog.content_handler_pipeline()->push_back(&rotate_var);
+    
+    RowVariables row_var(source_node);
+    binlog.content_handler_pipeline()->push_back(&row_var);
     
     int result =  binlog.connect(source_node.bin_log_file, source_node.position);
     if(ERR_OK != result)
@@ -195,7 +111,6 @@ int main(int argc, char** argv)
         }
         else
         {
-            
         }
                
         if(event == NULL)
@@ -224,4 +139,6 @@ int main(int argc, char** argv)
     }
     
     binlog.disconnect();
+    
+    Log::get_instance().log().info("mysql-migration-tool end...");
 }   

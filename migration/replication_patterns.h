@@ -51,6 +51,10 @@ private:
         patterns_file = PATTERNS_FILE;
         replication_state_file = REPLICATION_STATE_FILE;
         
+        error_ip           = "";
+        error_port         = "";
+        error_bin_log_file = "";
+        error_position     = 0;
         error_description = "no error";
     }
 public:

@@ -233,7 +233,8 @@ public:
     uint64_t binlog_pos;
 
     void print_event_info(std::ostream& info);
-    void print_long_info(std::ostream& info);};
+    void print_long_info(std::ostream& info);
+};
 
 class Format_event: public Binary_log_event
 {
@@ -247,8 +248,6 @@ public:
 
     void print_event_info(std::ostream& info);
     void print_long_info(std::ostream& info);
-
-
 };
 
 class User_var_event: public Binary_log_event

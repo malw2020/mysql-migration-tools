@@ -12,7 +12,7 @@ CXXFLAGS = $(BASICOPTS)
 CXX_H_PATH =  -I/usr/include/mysql 
 CXX_LIB_PATH = -L /usr/lib64/mysql
 
-OBJ_DEPEND = ../lib/libmysqlreplication.a ../lib/libtinyxml.a ../lib/libcommon.a
+OBJ_DEPEND = ../lib/libmysqlreplication.a ../lib/libtinyxml.a ../lib/libcommon.a ../lib/libmeta.a
 LDLIBS = -lcrypto -lmysqlclient -lpthread -llog4cpp 
 
 AppTarget = ../debug/mysqlreplication

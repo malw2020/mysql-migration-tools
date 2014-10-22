@@ -20,10 +20,7 @@ Binary_log_event* QueryVariables::process_event(Query_event *ev)
 {
     if(ev == NULL)
         return NULL;
-        
-//    if(strcmp(ev->query.c_str(), "BEGIN") == 0)
-//        return ev;
-    
+      
     Log::get_instance().log().info("database:%s, query:%s", ev->db_name.c_str(), ev->query.c_str());
     if(validate_database(ev->db_name))
     {
@@ -80,6 +77,25 @@ bool RotateVariables::update_binlog_pos(ulong pos)
     return true;
 }
 
+TableMapVariables::TableMapVariables(SourceNode& node)
+{
+    source_node = node;
+    master_info.ip   = node.ip;
+    master_info.port = node.port;
+    replication_info.bin_log_file = node.bin_log_file;
+    replication_info.position     = node.position;
+}
+
+Binary_log_event* TableMapVariables::process_event(Table_map_event *ev)
+{
+    if(ev == NULL)
+        return NULL;
+
+    ev->print_long_info(std::cout);
+                   
+    return ev;
+}
+
 RowVariables::RowVariables(SourceNode& node)
 {
     source_node = node;
@@ -98,4 +114,6 @@ Binary_log_event* RowVariables::process_event(Row_event *ev)
                    
     return ev;
 }
+   
+
    

@@ -24,12 +24,14 @@ pig:
 	cd lib_mysql_replication && make
 	cd lib_tinyxml && make
 	cd lib_common && make
+	cd lib_meta && make
 	cd migration && make	
 		
 clean: 
 	cd lib_mysql_replication && make clean
 	cd lib_tinyxml && make clean
 	cd lib_common && make clean
+	cd lib_meta && make clean
 	cd migration && make clean
 
 .KEEP_STATE:

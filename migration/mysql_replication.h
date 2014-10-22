@@ -41,6 +41,17 @@ public:
     ReplicationInfo replication_info;
 };
 
+class TableMapVariables : public Content_handler {
+public:
+    TableMapVariables(SourceNode& node);
+    Binary_log_event *process_event(Table_map_event *ev);
+    
+public:
+    SourceNode source_node;
+    MasterInfo master_info;
+    ReplicationInfo replication_info;
+};
+
 class RowVariables : public Content_handler {
 public:
     RowVariables(SourceNode& node);
@@ -51,6 +62,8 @@ public:
     MasterInfo master_info;
     ReplicationInfo replication_info;
 };
+
+
 
 //  WRITE_ROWS_EVENT_V1 = 23,
 //  UPDATE_ROWS_EVENT_V1 = 24,

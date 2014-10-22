@@ -181,9 +181,9 @@ void User_var_event::print_long_info(std::ostream& info)
 
 void Table_map_event::print_event_info(std::ostream& info)
 {
-  info << "table id: " << table_id << " ("
+  info << "server id:"<<this->header()->server_id<<"; table id: " << table_id << " ("
        << db_name << "."
-       << table_name << ")";
+       << table_name << ")\n";
 }
 
 void Table_map_event::print_long_info(std::ostream& info)
@@ -201,12 +201,28 @@ void Table_map_event::print_long_info(std::ostream& info)
     info << "\t" << (int)*it;
   }
   info << "\n";
+  
+
+  info << "\tmetadata : ";
+  for (it= metadata.begin(); it != metadata.end(); ++it)
+  {
+    info << "\t" << (int)*it;
+  }
+  info << "\n";
+  
+  info << "\tnull_bits : ";
+  for (it= null_bits.begin(); it != null_bits.end(); ++it)
+  {
+    info << "\t" << (int)*it;
+  }
+  info << "\n";  
+  
   this->print_event_info(info);
 }
 
 void Row_event::print_event_info(std::ostream& info)
 {
-  info << "table id: " << table_id << " flags: ";
+  info <<"server id:"<<this->header()->server_id<< "table id: " << table_id << " flags: ";
   info << get_flag_string(static_cast<enum_flag>(flags));
 }
 
@@ -215,22 +231,52 @@ void Row_event::print_long_info(std::ostream& info)
   info << "Timestamp: " << this->header()->timestamp;
   info << "\n";
   this->print_event_info(info);
+  
+   
+    std::vector<uint8_t>::iterator it;
+    info << "extra_header_data:";
+    for (it= extra_header_data.begin(); it != extra_header_data.end(); ++it)
+    {
+        info << "\t" << (int)*it;
+    }
+    info << "\n";
+    
+    info << "columns_before_image:";
+    for (it= columns_before_image.begin(); it != columns_before_image.end(); ++it)
+    {
+        info << "\t" << (int)*it;
+    }
+    info << "\n";
+        
+    info << "used_columns:";
+    for (it= used_columns.begin(); it != used_columns.end(); ++it)
+    {
+        info << "\t" << (int)*it;
+    }
+    info << "\n";
+    
+    info << "row:";
+    for (it= row.begin(); it != row.end(); ++it)
+    {
+        info << "\t" << (int)*it;
+    }
+    info << "\n";
 
   //TODO: Extract table names and column data.
   if (this->get_event_type() == PRE_GA_WRITE_ROWS_EVENT ||
       this->get_event_type() == WRITE_ROWS_EVENT_V1 ||
       this->get_event_type() == WRITE_ROWS_EVENT)
-    info << "\nType: Insert" ;
+    info << "\nType: Insert\n" ;
 
   if (this->get_event_type() == PRE_GA_DELETE_ROWS_EVENT ||
       this->get_event_type() == DELETE_ROWS_EVENT_V1 ||
       this->get_event_type() == DELETE_ROWS_EVENT)
-    info << "\nType: Delete" ;
+    info << "\nType: Delete\n" ;
 
   if (this->get_event_type() == PRE_GA_UPDATE_ROWS_EVENT ||
       this->get_event_type() == UPDATE_ROWS_EVENT_V1 ||
       this->get_event_type() == UPDATE_ROWS_EVENT)
-    info << "\nType: Update" ;
+    info << "\nType: Update\n" ;
 }
 
 void Int_var_event::print_event_info(std::ostream& info)

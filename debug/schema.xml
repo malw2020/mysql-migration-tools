@@ -1,0 +1,29 @@
+<?xml version="1.0" ?> 
+<Schemas>
+    <Schema>
+        <Server>
+            <ID>1</ID>
+        </Server>
+        <Databases>
+            <Database>
+                <Name>bianbian</Name>
+                <Tables>
+                    <Table>
+                        <Name>Persons</Name>
+                        <Columns>
+                            <Column>
+                                <Name>FirstName</Name>
+                            </Column>
+                            <Column>
+                                <Name>LastName</Name>
+                            </Column>
+                            <Column>
+                                <Name>Age</Name>
+                            </Column>
+                        </Columns>
+                    </Table>
+                </Tables>
+            </Database>
+        </Databases>
+    </Schema>
+</Schemas>

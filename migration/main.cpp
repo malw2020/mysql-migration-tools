@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include "main.h"
 #include "mysql_replication.h"
 #include "../lib_common/log.h"
+#include "../lib_meta/schema.h"
 
 using namespace std;
 
@@ -34,6 +35,14 @@ void save_replication_state()
 
 bool sys_init()
 {
+    // load schema info
+    if(false == Schema::get_instance().load())
+    {
+        Log::get_instance().log().error("init schema failure.");
+        return false;
+    }
+    Log::get_instance().log().info("init schema successful.");
+    
     // load ReplicationState info
     if(false == ReplicationState::get_instance().init_relication_info()) 
     {
@@ -91,6 +100,9 @@ int main(int argc, char** argv)
     
     RowVariables row_var(source_node);
     binlog.content_handler_pipeline()->push_back(&row_var);
+    
+    TableMapVariables table_map_var(source_node);
+    binlog.content_handler_pipeline()->push_back(&table_map_var);
     
     int result =  binlog.connect(source_node.bin_log_file, source_node.position);
     if(ERR_OK != result)

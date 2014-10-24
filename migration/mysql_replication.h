@@ -9,6 +9,7 @@
 #define	MYSQL_REPLICATION_H
 
 #include "../lib_mysql_replication/binlog_api.h"
+#include "../lib_meta/schema.h"
 #include "replication_patterns.h"
 #include "dispatcher.h"
 
@@ -43,24 +44,32 @@ public:
 
 class TableMapVariables : public Content_handler {
 public:
-    TableMapVariables(SourceNode& node);
+    TableMapVariables(SourceNode& node, ServerTableMap* server_table);
     Binary_log_event *process_event(Table_map_event *ev);
     
 public:
     SourceNode source_node;
     MasterInfo master_info;
     ReplicationInfo replication_info;
+    ServerTableMap* server_table_map;
 };
 
 class RowVariables : public Content_handler {
 public:
-    RowVariables(SourceNode& node);
+    RowVariables(SourceNode& node, ServerTableMap* server_table);
     Binary_log_event *process_event(Row_event *ev);
+    
+private:
+    bool erase_map(ServerTableID &server_table_id);
+    bool write_row_event(Row_event *ev, DatabaseTableName &database_table);
+    bool delete_row_event(Row_event *ev, DatabaseTableName &database_table);
+    bool update_row_event(Row_event *ev, DatabaseTableName &database_table);
     
 public:
     SourceNode source_node;
     MasterInfo master_info;
     ReplicationInfo replication_info;
+    ServerTableMap* server_table_map;
 };
 
 

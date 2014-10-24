@@ -80,8 +80,8 @@ bool Schema::load_schema(TiXmlElement *root_node)
         {
              Log::get_instance().log().error("load databases element failure."); 
              return false;
-        }     
-        
+        }   
+
         schema_server_sets.insert(std::pair<int, SchemaServer>(server.id, server));     
         
         schema_element = schema_element->NextSiblingElement("Schema");
@@ -125,6 +125,7 @@ bool Schema::load_databases(TiXmlElement *schema_node, SchemaServer &server)
         return false;
     }
     
+    Log::get_instance().log().info("find Databases."); 
     TiXmlElement *databases_element = schema_node->FirstChildElement("Databases");
     if(NULL == databases_element)
     {
@@ -132,7 +133,8 @@ bool Schema::load_databases(TiXmlElement *schema_node, SchemaServer &server)
         return false;
     }
     
-    TiXmlElement *database_element = schema_node->FirstChildElement("Database");   
+    Log::get_instance().log().info("find Database."); 
+    TiXmlElement *database_element = databases_element->FirstChildElement("Database");   
     while(NULL != database_element)
     {       
         SchemaDatabase database;                
@@ -142,6 +144,7 @@ bool Schema::load_databases(TiXmlElement *schema_node, SchemaServer &server)
              return false;
         }     
         
+        Log::get_instance().log().info("load database name %s successful.", database.name.c_str()); 
         server.databases.insert(std::pair<string, SchemaDatabase>(database.name, database));     
         
         database_element = database_element->NextSiblingElement("Database");
@@ -249,4 +252,42 @@ bool Schema::load_column(TiXmlElement *column_node, SchemaColumn &column)
     
     column.name = column_name_element->FirstChild()->Value();
     return true;
+}
+
+bool Schema::get_columns_name(const ServerTableID &server_table_id, DatabaseTableName &database_table_name)
+{
+    std::map<int, SchemaServer>::iterator iterator_schema_server;
+    iterator_schema_server = schema_server_sets.find(server_table_id.server_id);
+    if(iterator_schema_server == schema_server_sets.end())
+    {
+        Log::get_instance().log().error("server id does not exist, server id:%d.", server_table_id.server_id); 
+        return false;
+    }
+    
+    std::map<string, SchemaDatabase>::iterator iterator_databases;
+    iterator_databases = iterator_schema_server->second.databases.find(database_table_name.database);
+    if(iterator_databases == iterator_schema_server->second.databases.end())
+    {
+        Log::get_instance().log().error("database in server id does not exist, server id:%d, database:%s.",
+                                         server_table_id.server_id, database_table_name.database.c_str()); 
+        return false;
+    }
+
+    std::map<string, SchemaTable>::iterator iterator_tables;
+    iterator_tables = iterator_databases->second.tables.find(database_table_name.table);
+    if(iterator_tables == iterator_databases->second.tables.end())
+    {
+        Log::get_instance().log().error("table of database in server id does not exist, server id:%d, database:%s, table:%s.",
+                                         server_table_id.server_id, database_table_name.database.c_str(),
+                                         database_table_name.table.c_str()); 
+        return false;
+    }
+    
+    unsigned int len = iterator_tables->second.columns.size();
+    for(unsigned int index=0; index<len; ++index)
+    {
+        database_table_name.column_name.push_back(iterator_tables->second.columns[index]);
+    }    
+    
+    return true; 
 }

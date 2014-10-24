@@ -98,12 +98,14 @@ int main(int argc, char** argv)
     RotateVariables rotate_var(source_node);
     binlog.content_handler_pipeline()->push_back(&rotate_var);
     
-    RowVariables row_var(source_node);
-    binlog.content_handler_pipeline()->push_back(&row_var);
-    
-    TableMapVariables table_map_var(source_node);
+    // support row replication
+    ServerTableMap server_table_map;
+    TableMapVariables table_map_var(source_node, &server_table_map);
     binlog.content_handler_pipeline()->push_back(&table_map_var);
     
+    RowVariables row_var(source_node, &server_table_map);
+    binlog.content_handler_pipeline()->push_back(&row_var);
+
     int result =  binlog.connect(source_node.bin_log_file, source_node.position);
     if(ERR_OK != result)
     {

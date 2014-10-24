@@ -51,6 +51,37 @@ typedef struct tag_schema_server
 
 typedef std::map<int, SchemaServer> SchemaServerSets;
 
+typedef struct tag_server_table_id
+{
+    uint32_t server_id;
+    uint64_t table_id;    
+    
+    bool operator < (tag_server_table_id const& _A) const
+    {
+
+        if(server_id < _A.server_id) 
+            return true;
+
+        if(server_id == _A.server_id) 
+            return table_id < _A.table_id;
+
+        return false;
+    }
+} ServerTableID;
+
+typedef struct tag_database_table_name
+{
+    string database;
+    string table;
+    std::vector<uint8_t> column_type;
+    std::vector<uint8_t> metadata;
+    std::vector<uint8_t> null_bits;
+    
+    SchemaColumnSets column_name;
+} DatabaseTableName;
+
+typedef std::map<ServerTableID, DatabaseTableName> ServerTableMap;
+
 class Schema
 {
 private:
@@ -65,6 +96,8 @@ public:
 public:
     static Schema& get_instance();
     bool load();
+    bool get_columns_name(const ServerTableID &server_table_id, DatabaseTableName &database_table_name);
+    
     
 private:
     bool load_schema(TiXmlElement *root_node);

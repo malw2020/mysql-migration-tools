@@ -22,6 +22,48 @@
                             </Column>
                         </Columns>
                     </Table>
+                    <Table>
+                        <Name>emb_t_dictBusType</Name>
+                        <Columns>
+                            <Column>
+                                <Name>emb_c_busTypeID</Name>
+                            </Column>
+                            <Column>
+                                <Name>emb_c_busTypeEnName</Name>
+                            </Column>
+                            <Column>
+                                <Name>emb_c_busTypeZhName</Name>
+                            </Column>
+                        </Columns>
+                    </Table>
+                    <Table>
+                        <Name>emb_t_dictBusType_myisam</Name>
+                        <Columns>
+                            <Column>
+                                <Name>emb_c_busTypeID</Name>
+                            </Column>
+                            <Column>
+                                <Name>emb_c_busTypeEnName</Name>
+                            </Column>
+                            <Column>
+                                <Name>emb_c_busTypeZhName</Name>
+                            </Column>
+                        </Columns>
+                    </Table>
+                    <Table>
+                        <Name>emb_t_dictBusType_myisam_latinl</Name>
+                        <Columns>
+                            <Column>
+                                <Name>emb_c_busTypeID</Name>
+                            </Column>
+                            <Column>
+                                <Name>emb_c_busTypeEnName</Name>
+                            </Column>
+                            <Column>
+                                <Name>emb_c_busTypeZhName</Name>
+                            </Column>
+                        </Columns>
+                    </Table>
                 </Tables>
             </Database>
         </Databases>

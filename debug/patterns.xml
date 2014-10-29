@@ -5,11 +5,11 @@
     <!-- source database --> 
     <Sources>
         <Source>
-            <IP>172.17.4.50</IP>
-            <Port>3333</Port>
-            <User>dba</User>
-            <Password>yvhkfhvk</Password>
-            <File>mysql-bin.000026</File>
+            <IP>192.168.137.3</IP>
+            <Port>3306</Port>
+            <User>slave_user</User>
+            <Password>123456</Password>
+            <File>mysql-bin.000019</File>
             <Position>297</Position>
             <Replicate_do_db>
                 <Database>test</Database>
@@ -22,11 +22,11 @@
     <!-- destination database --> 
     <Destinations>
         <Destination>
-            <IP>172.17.4.50</IP>
-            <Port>3333</Port>
-            <User>dba</User>
-            <Password>yvhkfhvk</Password>
-            <Database>test3</Database>
+            <IP>192.168.137.4</IP>
+            <Port>3306</Port>
+            <User>malw</User>
+            <Password>malw</Password>
+            <Database>test_replication</Database>
         </Destination>        
     </Destinations>
     <Shards />

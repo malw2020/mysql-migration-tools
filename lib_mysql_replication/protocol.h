@@ -34,15 +34,15 @@ namespace system {
 
 //TODO:Replace this by enum declaration in log_event.h
 enum enum_binlog_checksum_alg {
-  BINLOG_CHECKSUM_ALG_OFF= 0,                  // Events are without checksum
-                                               // though its generator is
-                                               // checksum-capable New Master (NM).
-  BINLOG_CHECKSUM_ALG_CRC32= 1,                // CRC32 of zlib algorithm.
-  BINLOG_CHECKSUM_ALG_ENUM_END,                // the cut line: valid alg range
-                                               // is [1, 0x7f].
-  BINLOG_CHECKSUM_ALG_UNDEF= 255               // special value to tag undetermined
-                                               // yet checksum or events from
-                                               // checksum-unaware servers
+    BINLOG_CHECKSUM_ALG_OFF= 0,                  // Events are without checksum
+                                                 // though its generator is
+                                                 // checksum-capable New Master (NM).
+    BINLOG_CHECKSUM_ALG_CRC32= 1,                // CRC32 of zlib algorithm.
+    BINLOG_CHECKSUM_ALG_ENUM_END,                // the cut line: valid alg range
+                                                 // is [1, 0x7f].
+    BINLOG_CHECKSUM_ALG_UNDEF= 255               // special value to tag undetermined
+                                                 // yet checksum or events from
+                                                 // checksum-unaware servers
 };
 
 /**
@@ -57,14 +57,14 @@ int check_checksum_value( mysql::Binary_log_event **event);
 */
 struct st_handshake_package
 {
-  uint8_t     protocol_version;
-  std::string server_version_str;
-  uint32_t    thread_id;
-  uint8_t     scramble_buff[8];
-  uint16_t    server_capabilities;
-  uint8_t     server_language;
-  uint16_t    server_status;
-  uint8_t     scramble_buff2[13];
+    uint8_t     protocol_version;
+    std::string server_version_str;
+    uint32_t    thread_id;
+    uint8_t     scramble_buff[8];
+    uint16_t    server_capabilities;
+    uint8_t     server_language;
+    uint16_t    server_status;
+    uint8_t     scramble_buff2[13];
 };
 
 /**
@@ -73,18 +73,18 @@ struct st_handshake_package
 */
 struct st_ok_package
 {
-  uint8_t  result_type;
-  uint64_t affected_rows;
-  uint64_t insert_id;
-  uint16_t server_status;
-  uint16_t warning_count;
-  std::string  message;
+    uint8_t  result_type;
+    uint64_t affected_rows;
+    uint64_t insert_id;
+    uint16_t server_status;
+    uint16_t warning_count;
+    std::string  message;
 };
 
 struct st_eof_package
 {
-  uint16_t warning_count;
-  uint16_t status_flags;
+    uint16_t warning_count;
+    uint16_t status_flags;
 };
 
 /**
@@ -93,9 +93,9 @@ struct st_eof_package
 */
 struct st_error_package
 {
-  uint16_t error_code;
-  uint8_t  sql_state[5];
-  std::string  message;
+    uint16_t error_code;
+    uint8_t  sql_state[5];
+    std::string  message;
 };
 
 #define CLIENT_LONG_PASSWORD	1	/* new more secure passwords */
@@ -138,34 +138,42 @@ class buffer_source;
 class Protocol
 {
 public:
-  Protocol() { m_length_encoded_binary= false; }
-  /**
-    Return the number of bytes which is read or written by this protocol chunk.
-    The default size is equal to the underlying storage data type.
-  */
-  virtual unsigned int size()=0;
+    Protocol() 
+    { 
+        m_length_encoded_binary= false;
+    }
+    
+    /**
+      Return the number of bytes which is read or written by this protocol chunk.
+      The default size is equal to the underlying storage data type.
+    */
+    virtual unsigned int size()=0;
 
-  /** Return a pointer to the first byte in a linear storage buffer */
-  virtual const char *data()=0;
+    /** Return a pointer to the first byte in a linear storage buffer */
+    virtual const char *data()=0;
 
-  /**
-    Change the number of bytes which will be read or written to the storage.
-    The default size is euqal to the storage type size. This can change if the
-    protocol is reading a length encoded binary.
-    The new size must always be less than the size of the underlying storage
-    type.
-  */
-  virtual void collapse_size(unsigned int new_size)=0;
+    /**
+      Change the number of bytes which will be read or written to the storage.
+      The default size is euqal to the storage type size. This can change if the
+      protocol is reading a length encoded binary.
+      The new size must always be less than the size of the underlying storage
+      type.
+    */
+    virtual void collapse_size(unsigned int new_size)=0;
 
-  /**
-    The first byte will have a special interpretation which will indicate
-    how many bytes should be read next.
-  */
-  void set_length_encoded_binary(bool bswitch)
-  {
-    m_length_encoded_binary= bswitch;
-  }
-  bool is_length_encoded_binary(void) { return m_length_encoded_binary; }
+    /**
+      The first byte will have a special interpretation which will indicate
+      how many bytes should be read next.
+    */
+    void set_length_encoded_binary(bool bswitch)
+    {
+        m_length_encoded_binary = bswitch;
+    }
+    
+    bool is_length_encoded_binary(void)
+    { 
+        return m_length_encoded_binary; 
+    }
 
 private:
     bool m_length_encoded_binary;
@@ -180,49 +188,49 @@ template<typename T>
 class Protocol_chunk : public Protocol
 {
 public:
+    Protocol_chunk() : Protocol()
+    {
+        m_size= 0;
+        m_data= 0;
+    }
 
-  Protocol_chunk() : Protocol()
-  {
-    m_size= 0;
-    m_data= 0;
-  }
+    Protocol_chunk(T &chunk) : Protocol()
+    {
+        m_data= (const char *)&chunk;
+        m_size= sizeof(T);
+    }
 
-  Protocol_chunk(T &chunk) : Protocol()
-  {
-    m_data= (const char *)&chunk;
-    m_size= sizeof(T);
-  }
+    Protocol_chunk(const T &chunk) : Protocol ()
+    {
+         m_data= (const char *) &chunk;
+         m_size= sizeof(T);
+    }
 
-  Protocol_chunk(const T &chunk) : Protocol ()
-  {
-     m_data= (const char *) &chunk;
-     m_size= sizeof(T);
-  }
+    /**
+     * @param buffer A pointer to the storage
+     * @param size The size of the storage
+     *
+     * @note If size == 0 then the chunk is a
+     * length coded binary.
+     */
+    Protocol_chunk(T *buffer, unsigned long size) : Protocol ()
+    {
+        m_data= (const char *)buffer;
+        m_size= size;
+    }
 
-  /**
-   * @param buffer A pointer to the storage
-   * @param size The size of the storage
-   *
-   * @note If size == 0 then the chunk is a
-   * length coded binary.
-   */
-  Protocol_chunk(T *buffer, unsigned long size) : Protocol ()
-  {
-      m_data= (const char *)buffer;
-      m_size= size;
-  }
-
-  virtual unsigned int size() { return m_size; }
-  virtual const char *data() { return m_data; }
-  virtual void collapse_size(unsigned int new_size)
-  {
-    //assert(new_size <= m_size);
-    memset((char *)m_data+new_size,'\0', m_size-new_size);
-    m_size= new_size;
-  }
+    virtual unsigned int size() { return m_size; }
+    virtual const char *data() { return m_data; }
+    virtual void collapse_size(unsigned int new_size)
+    {
+        //assert(new_size <= m_size);
+        memset((char *)m_data+new_size,'\0', m_size-new_size);
+        m_size= new_size;
+    }
+  
 private:
-  const char *m_data;
-  unsigned long m_size;
+    const char *m_data;
+    unsigned long m_size;
 };
 
 std::ostream &operator<<(std::ostream &os, Protocol &chunk);

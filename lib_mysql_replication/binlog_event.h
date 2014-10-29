@@ -37,7 +37,6 @@ namespace mysql
 {
 /**
   @enum Log_event_type
-
   Enumeration type for the different types of log events.
 */
 enum Log_event_type
@@ -45,109 +44,110 @@ enum Log_event_type
   /*
     Every time you update this enum (when you add a type), you have to
     fix Format_description_log_event::Format_description_log_event().
-  */
-  UNKNOWN_EVENT= 0,
-  START_EVENT_V3= 1,
-  QUERY_EVENT= 2,
-  STOP_EVENT= 3,
-  ROTATE_EVENT= 4,
-  INTVAR_EVENT= 5,
-  LOAD_EVENT= 6,
-  SLAVE_EVENT= 7,
-  CREATE_FILE_EVENT= 8,
-  APPEND_BLOCK_EVENT= 9,
-  EXEC_LOAD_EVENT= 10,
-  DELETE_FILE_EVENT= 11,
-  /*
+    */
+    UNKNOWN_EVENT= 0,
+    START_EVENT_V3= 1,
+    QUERY_EVENT= 2,
+    STOP_EVENT= 3,
+    ROTATE_EVENT= 4,
+    INTVAR_EVENT= 5,
+    LOAD_EVENT= 6,
+    SLAVE_EVENT= 7,
+    CREATE_FILE_EVENT= 8,
+    APPEND_BLOCK_EVENT= 9,
+    EXEC_LOAD_EVENT= 10,
+    DELETE_FILE_EVENT= 11,
+    /*
     NEW_LOAD_EVENT is like LOAD_EVENT except that it has a longer
     sql_ex, allowing multibyte TERMINATED BY etc; both types share the
     same class (Load_log_event)
-  */
-  NEW_LOAD_EVENT= 12,
-  RAND_EVENT= 13,
-  USER_VAR_EVENT= 14,
-  FORMAT_DESCRIPTION_EVENT= 15,
-  XID_EVENT= 16,
-  BEGIN_LOAD_QUERY_EVENT= 17,
-  EXECUTE_LOAD_QUERY_EVENT= 18,
+    */
+    NEW_LOAD_EVENT= 12,
+    RAND_EVENT= 13,
+    USER_VAR_EVENT= 14,
+    FORMAT_DESCRIPTION_EVENT= 15,
+    XID_EVENT= 16,
+    BEGIN_LOAD_QUERY_EVENT= 17,
+    EXECUTE_LOAD_QUERY_EVENT= 18,
 
-  TABLE_MAP_EVENT = 19,
+    TABLE_MAP_EVENT = 19,
 
-  /*
+    /*
     These event numbers were used for 5.1.0 to 5.1.15 and are
     therefore obsolete.
-   */
-  PRE_GA_WRITE_ROWS_EVENT = 20,
-  PRE_GA_UPDATE_ROWS_EVENT = 21,
-  PRE_GA_DELETE_ROWS_EVENT = 22,
+    */
+    PRE_GA_WRITE_ROWS_EVENT = 20,
+    PRE_GA_UPDATE_ROWS_EVENT = 21,
+    PRE_GA_DELETE_ROWS_EVENT = 22,
 
-  /*
-   These event numbers are used from 5.1.16 until mysql-trunk-xx
-   */
-  WRITE_ROWS_EVENT_V1 = 23,
-  UPDATE_ROWS_EVENT_V1 = 24,
-  DELETE_ROWS_EVENT_V1 = 25,
+    /*
+    These event numbers are used from 5.1.16 until mysql-trunk-xx
+    */
+    WRITE_ROWS_EVENT_V1 = 23,
+    UPDATE_ROWS_EVENT_V1 = 24,
+    DELETE_ROWS_EVENT_V1 = 25,
 
-  /*
+    /*
     Something out of the ordinary happened on the master
-   */
-  INCIDENT_EVENT= 26,
+    */
+    INCIDENT_EVENT= 26,
 
-  /*
+    /*
     Heartbeat event to be send by master at its idle time
     to ensure master's online status to slave
-  */
-  HEARTBEAT_LOG_EVENT= 27,
+    */
+    HEARTBEAT_LOG_EVENT= 27,
 
-  /*
+    /*
     In some situations, it is necessary to send over ignorable
     data to the slave: data that a slave can handle in case there
     is code for handling it, but which can be ignored if it is not
     recognized.
-  */
-  IGNORABLE_LOG_EVENT= 28,
-  ROWS_QUERY_LOG_EVENT= 29,
+    */
+    IGNORABLE_LOG_EVENT= 28,
+    ROWS_QUERY_LOG_EVENT= 29,
 
-  /* Version 2 of the Row events */
-  WRITE_ROWS_EVENT = 30,
-  UPDATE_ROWS_EVENT = 31,
-  DELETE_ROWS_EVENT = 32,
+    /* Version 2 of the Row events */
+    WRITE_ROWS_EVENT = 30,
+    UPDATE_ROWS_EVENT = 31,
+    DELETE_ROWS_EVENT = 32,
 
-  GTID_LOG_EVENT= 33,
-  ANONYMOUS_GTID_LOG_EVENT= 34,
+    GTID_LOG_EVENT= 33,
+    ANONYMOUS_GTID_LOG_EVENT= 34,
 
-  PREVIOUS_GTIDS_LOG_EVENT= 35,
+    PREVIOUS_GTIDS_LOG_EVENT= 35,
 
-  /*
-   * A user defined event
-   */
-  USER_DEFINED= 36,
+    /*
+    A user defined event
+    */
+    USER_DEFINED= 36,
 
-  /*
+    /*
     Add new events here - right above this comment!
     Existing events (except ENUM_END_EVENT) should never change their numbers
-  */
-  ENUM_END_EVENT /* end marker */
+    */
+    ENUM_END_EVENT /* end marker */
 };
 
 namespace system {
-/**
+/** 
  * Convenience function to get the string representation of a binlog event.
  */
 const char* get_event_type_str(Log_event_type type);
+
 } // end namespace system
 
 #define LOG_EVENT_HEADER_SIZE 20
 class Log_event_header
 {
 public:
-  uint8_t  marker; // always 0 or 0xFF
-  uint32_t timestamp;
-  uint8_t  type_code;
-  uint32_t server_id;
-  uint32_t event_length;
-  uint32_t next_position;
-  uint16_t flags;
+    uint8_t  marker; // always 0 or 0xFF
+    uint32_t timestamp;
+    uint8_t  type_code;
+    uint32_t server_id;
+    uint32_t event_length;
+    uint32_t next_position;
+    uint16_t flags;
 };
 
 
@@ -161,16 +161,16 @@ class Binary_log_event
 public:
     Binary_log_event()
     {
-        /*
+         /*
           An event length of 0 indicates that the header isn't initialized
          */
-        m_header.event_length = 0;
-        m_header.type_code =    0;
+         m_header.event_length = 0;
+         m_header.type_code    = 0;
     }
 
     Binary_log_event(Log_event_header *header)
     {
-        m_header= *header;
+         m_header = *header;
     }
 
     /**
@@ -188,7 +188,7 @@ public:
      */
     enum Log_event_type get_event_type() const
     {
-      return (enum Log_event_type) m_header.type_code;
+        return (enum Log_event_type) m_header.type_code;
     }
 
     /**
@@ -254,15 +254,16 @@ class User_var_event: public Binary_log_event
 {
 public:
     enum Value_type {
-      STRING_TYPE,
-      REAL_TYPE,
-      INT_TYPE,
-      ROW_TYPE,
-      DECIMAL_TYPE,
-      VALUE_TYPE_COUNT
+        STRING_TYPE,
+        REAL_TYPE,
+        INT_TYPE,
+        ROW_TYPE,
+        DECIMAL_TYPE,
+        VALUE_TYPE_COUNT
     };
 
     User_var_event(Log_event_header *header) : Binary_log_event(header) {}
+    
     std::string name;
     uint8_t is_null;
     uint8_t type;
@@ -273,16 +274,16 @@ public:
     void print_long_info(std::ostream& info);
     std::string static get_value_type_string(enum Value_type type)
     {
-      switch(type)
-      {
-        case STRING_TYPE:return "String";
-        case REAL_TYPE:return "Real";
-        case INT_TYPE:return "Integer";
-        case ROW_TYPE:return "Row";
-        case DECIMAL_TYPE:return "Decimal";
-        case VALUE_TYPE_COUNT:return "Value type count";
-        default:return "Unknown";
-      }
+        switch(type)
+        {
+            case STRING_TYPE:return "String";
+            case REAL_TYPE:return "Real";
+            case INT_TYPE:return "Integer";
+            case ROW_TYPE:return "Row";
+            case DECIMAL_TYPE:return "Decimal";
+            case VALUE_TYPE_COUNT:return "Value type count";
+            default:return "Unknown";
+        }
     }
 };
 
@@ -359,24 +360,24 @@ public:
     uint64_t value;
     enum Int_event_type
     {
-      INVALID_INT_EVENT,
-      LAST_INSERT_ID_EVENT,
-      INSERT_ID_EVENT
+        INVALID_INT_EVENT,
+        LAST_INSERT_ID_EVENT,
+        INSERT_ID_EVENT
     };
 
     static std::string get_type_string(enum Int_event_type type)
     {
-      switch(type)
-      {
-      case INVALID_INT_EVENT:
-        return "INVALID_INT";
-      case LAST_INSERT_ID_EVENT:
-        return "LAST_INSERT_ID";
-      case INSERT_ID_EVENT:
-        return "INSERT_ID";
-      default: /* impossible */
-        return "UNKNOWN";
-      }
+        switch(type)
+        {
+          case INVALID_INT_EVENT:
+              return "INVALID_INT";
+          case LAST_INSERT_ID_EVENT:
+              return "LAST_INSERT_ID";
+          case INSERT_ID_EVENT:
+              return "INSERT_ID";
+          default: /* impossible */
+              return "UNKNOWN";
+        }
     }
 
     void print_event_info(std::ostream& info);
@@ -405,9 +406,7 @@ public:
     void print_long_info(std::ostream& info);
 };
 
-Binary_log_event *create_incident_event(unsigned int type,
-                                        const char *message,
-                                        unsigned long pos= 0);
+Binary_log_event *create_incident_event(unsigned int type, const char *message, unsigned long pos= 0);
 
 } // end namespace mysql
 

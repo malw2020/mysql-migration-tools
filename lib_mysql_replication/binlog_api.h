@@ -43,16 +43,16 @@ namespace mysql
  * Error codes.
  */
 enum Error_code {
-  ERR_OK = 0,                                   /* All OK */
-  ERR_EOF,                                      /* End of file */
-  ERR_FAIL,                                     /* Unspecified failure */
-  ERR_CHECKSUM_ENABLED,
-  ERR_CHECKSUM_QUERY_FAIL,
-  ERR_CONNECT,
-  ERR_BINLOG_VERSION,
-  ERR_PACKET_LENGTH,
-  ERR_MYSQL_QUERY_FAIL,
-  ERROR_CODE_COUNT
+    ERR_OK = 0,                                   /* All OK */
+    ERR_EOF,                                      /* End of file */
+    ERR_FAIL,                                     /* Unspecified failure */
+    ERR_CHECKSUM_ENABLED,
+    ERR_CHECKSUM_QUERY_FAIL,
+    ERR_CONNECT,
+    ERR_BINLOG_VERSION,
+    ERR_PACKET_LENGTH,
+    ERR_MYSQL_QUERY_FAIL,
+    ERROR_CODE_COUNT
 };
 
 /**
@@ -60,19 +60,19 @@ enum Error_code {
  */
 static const char *bapi_error_messages[]=
 {
-  "All OK",
-  "End of File",
-  "Unexpected failure",
-  "binlog_checksum is enabled on the master. Set them to NONE.",
-  "Could not notify master about checksum awareness.\n"
-  "Master returned no rows for the query\n"
-  "SHOW GLOBAL VARIABLES LIKE 'BINLOG_CHECKSUM.",
-  "Unable to set up connection",
-  "Binlog Version not supported",
-  "Error in packet length. Binlog checksums may be enabled on the master.\n"
-  "Please set it to NONE.",
-  "Error in executing MySQL Query on the server",
-  ""
+    "All OK",
+    "End of File",
+    "Unexpected failure",
+    "binlog_checksum is enabled on the master. Set them to NONE.",
+    "Could not notify master about checksum awareness.\n"
+    "Master returned no rows for the query\n"
+    "SHOW GLOBAL VARIABLES LIKE 'BINLOG_CHECKSUM.",
+    "Unable to set up connection",
+    "Binlog Version not supported",
+    "Error in packet length. Binlog checksums may be enabled on the master.\n"
+    "Please set it to NONE.",
+    "Error in executing MySQL Query on the server",
+    ""
 };
 
 extern const char *str_error(int error_no);
@@ -80,40 +80,41 @@ extern const char *str_error(int error_no);
 /**
  * Returns true if the event is consumed
  */
-
 class Dummy_driver : public system::Binary_log_driver
 {
 public:
-  Dummy_driver() : Binary_log_driver("", 0) {}
-  virtual ~Dummy_driver() {}
+    Dummy_driver() : Binary_log_driver("", 0) {}
+    virtual ~Dummy_driver() {}
 
-  virtual int connect()
-  {
-    return 1;
-  }
+    virtual int connect()
+    {
+        return 1;
+    }
 
-  virtual int wait_for_next_event(mysql::Binary_log_event **event)
-  {
-    return ERR_EOF;
-  }
+    virtual int wait_for_next_event(mysql::Binary_log_event **event)
+    {
+        return ERR_EOF;
+    }
 
-  virtual int set_position(const std::string &str, unsigned long position)
-  {
-    return ERR_OK;
-  }
+    virtual int set_position(const std::string &str, unsigned long position)
+    {
+        return ERR_OK;
+    }
 
-  virtual int get_position(std::string *str, unsigned long *position)
-  {
-    return ERR_OK;
-  }
-  virtual int connect(const std::string &filename, ulong position)
-  {
-    return ERR_OK;
-  }
-  virtual int disconnect()
-  {
-    return ERR_OK;
-  }
+    virtual int get_position(std::string *str, unsigned long *position)
+    {
+        return ERR_OK;
+    }
+    
+    virtual int connect(const std::string &filename, ulong position)
+    {
+        return ERR_OK;
+    }
+    
+    virtual int disconnect()
+    {
+        return ERR_OK;
+    }
 };
 
 class Content_handler;
@@ -122,63 +123,64 @@ typedef std::list<Content_handler *> Content_handler_pipeline;
 
 class Binary_log {
 private:
-  system::Binary_log_driver *m_driver;
-  Dummy_driver m_dummy_driver;
-  Content_handler_pipeline m_content_handlers;
-  unsigned long m_binlog_position;
-  std::string m_binlog_file;
+    system::Binary_log_driver *m_driver;
+    Dummy_driver m_dummy_driver;
+    Content_handler_pipeline m_content_handlers;
+    unsigned long m_binlog_position;
+    std::string m_binlog_file;
+    
 public:
-  Binary_log(system::Binary_log_driver *drv);
-  ~Binary_log() {}
-  int connect();
-  int connect(std::string &filename, ulong position);
+    Binary_log(system::Binary_log_driver *drv);
+    ~Binary_log() {}
+    int connect();
+    int connect(std::string &filename, ulong position);
 
-  /**
-   * Blocking attempt to get the next binlog event from the stream
-   */
+    /**
+     * Blocking attempt to get the next binlog event from the stream
+     */
 
-  int wait_for_next_event(Binary_log_event **event);
+    int wait_for_next_event(Binary_log_event **event);
 
-  /**
-   * Inserts/removes content handlers in and out of the chain
-   * The Content_handler_pipeline is a derived std::list
-   */
-  Content_handler_pipeline *content_handler_pipeline();
+    /**
+     * Inserts/removes content handlers in and out of the chain
+     * The Content_handler_pipeline is a derived std::list
+     */
+    Content_handler_pipeline *content_handler_pipeline();
 
-  /**
-   * Set the binlog position (filename, position)
-   *
-   * @return Error_code
-   *  @retval ERR_OK The position is updated.
-   *  @retval ERR_EOF The position is out-of-range
-   *  @retval >= ERR_CODE_COUNT An unspecified error occurred
-   */
-  int set_position(const std::string &filename, unsigned long position);
+    /**
+     * Set the binlog position (filename, position)
+     *
+     * @return Error_code
+     *  @retval ERR_OK The position is updated.
+     *  @retval ERR_EOF The position is out-of-range
+     *  @retval >= ERR_CODE_COUNT An unspecified error occurred
+     */
+    int set_position(const std::string &filename, unsigned long position);
 
-  /**
-   * Set the binlog position using current filename
-   * @param position Requested position
-   *
-   * @return Error_code
-   *  @retval ERR_OK The position is updated.
-   *  @retval ERR_EOF The position is out-of-range
-   *  @retval >= ERR_CODE_COUNT An unspecified error occurred
-   */
-  int set_position(unsigned long position);
+    /**
+     * Set the binlog position using current filename
+     * @param position Requested position
+     *
+     * @return Error_code
+     *  @retval ERR_OK The position is updated.
+     *  @retval ERR_EOF The position is out-of-range
+     *  @retval >= ERR_CODE_COUNT An unspecified error occurred
+     */
+    int set_position(unsigned long position);
 
-  /**
-   * Fetch the binlog position for the current file
-   */
-  unsigned long get_position(void);
+    /**
+     * Fetch the binlog position for the current file
+     */
+    unsigned long get_position(void);
 
-  /**
-   * Fetch the current active binlog file name.
-   * @param[out] filename
-   * TODO replace reference with a pointer.
-   * @return The current binlog file position
-   */
-  unsigned long get_position(std::string &filename);
-  int disconnect();
+    /**
+     * Fetch the current active binlog file name.
+     * @param[out] filename
+     * TODO replace reference with a pointer.
+     * @return The current binlog file position
+     */
+    unsigned long get_position(std::string &filename);
+    int disconnect();
 };
 
 }

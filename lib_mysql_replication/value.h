@@ -149,7 +149,7 @@ public:
 private:
     enum_field_types m_type;
     uint32_t m_size;
-		const char *m_storage;
+    const char *m_storage;
     uint32_t m_metadata;
     bool m_is_null;
 };

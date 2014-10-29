@@ -29,18 +29,22 @@ namespace mysql {
 
 Result_set::iterator Result_set::begin()
 {
-  return iterator(this);
+    return iterator(this);
 }
+
 Result_set::iterator Result_set::end()
 {
-  return iterator();
+    return iterator();
 }
+
 Result_set::const_iterator Result_set::begin() const
 {
-  return const_iterator(const_cast<Result_set *>(this));
+    return const_iterator(const_cast<Result_set *>(this));
 }
+
 Result_set::const_iterator Result_set::end() const
 {
-  return const_iterator();
+    return const_iterator();
 }
+
 } // end namespace system, mysql

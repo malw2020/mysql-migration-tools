@@ -42,18 +42,15 @@ namespace mysql { namespace system {
 class Binlog_tcp_driver : public Binary_log_driver
 {
 public:
-
-    Binlog_tcp_driver(const std::string& user, const std::string& passwd,
-                      const std::string& host, uint port)
-      : Binary_log_driver("", 4), m_host(host), m_user(user), m_passwd(passwd),
-        m_port(port), m_waiting_event(0),
+    Binlog_tcp_driver(const std::string& user, const std::string& passwd, const std::string& host, uint port)
+      : Binary_log_driver("", 4), m_host(host), m_user(user), m_passwd(passwd), m_port(port), m_waiting_event(0),
         m_total_bytes_transferred(0), m_shutdown(false)
     {
     }
 
     ~Binlog_tcp_driver()
     {
-      delete m_mysql;
+        delete m_mysql;
     }
 
     /**
@@ -173,6 +170,7 @@ int sync_connect_and_authenticate(MYSQL *mysql, const std::string &user,
                                   const std::string &passwd,
                                   const std::string &host, uint port,
                                   long offset= 4);
+
 } }
 
 

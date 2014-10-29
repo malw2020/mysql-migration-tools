@@ -40,8 +40,7 @@ public:
     typedef Result_set_iterator<Row_of_fields > iterator;
     typedef Result_set_iterator<Row_of_fields const > const_iterator;
 
-    Result_set(MYSQL *mysql)
-    : m_mysql(mysql)
+    Result_set(MYSQL *mysql) : m_mysql(mysql)
     {
     }
     iterator begin();
@@ -62,70 +61,69 @@ private:
 };
 
 template <class Iterator_value_type >
-class Result_set_iterator :public std::iterator<std::forward_iterator_tag,
-                                                Iterator_value_type>
+class Result_set_iterator :public std::iterator<std::forward_iterator_tag, Iterator_value_type>
 {
 public:
     Result_set_iterator() : m_feeder(0), m_current_row(-1)
     {}
 
-    explicit Result_set_iterator(Result_set *feeder) : m_feeder(feeder),
-      m_current_row(-1)
+    explicit Result_set_iterator(Result_set *feeder) : m_feeder(feeder), m_current_row(-1)
     {
-      increment();
+        increment();
     }
 
     Iterator_value_type operator*()
     {
-      return m_feeder->m_rows[m_current_row];
+        return m_feeder->m_rows[m_current_row];
     }
 
 
     void operator++()
     {
-      if (++m_current_row >= m_feeder->m_row_count)
-        m_current_row= -1;
+        if (++m_current_row >= m_feeder->m_row_count)
+            m_current_row = -1;
     }
 
 
     void operator++(int)
     {
-      if (++m_current_row >= m_feeder->m_row_count)
-        m_current_row= -1;
+        if (++m_current_row >= m_feeder->m_row_count)
+            m_current_row = -1;
     }
 
 
     bool operator!=(const Result_set_iterator& other) const
     {
-      if (other.m_feeder == 0 && m_feeder == 0)
+        if (other.m_feeder == 0 && m_feeder == 0)
+            return false;
+
+        if (other.m_feeder == 0)
+            return m_current_row != -1;
+
+        if (m_feeder == 0)
+            return other.m_current_row != -1;
+
+        if (other.m_feeder->m_field_count != m_feeder->m_field_count)
+            return true;
+
+        Iterator_value_type *row1= &m_feeder->m_rows[m_current_row];
+        Iterator_value_type *row2= &other.m_feeder->m_rows[m_current_row];
+        for (unsigned int i= 0; i< m_feeder->m_field_count; ++i)
+        {
+            Value val1= row1->at(i);
+            Value val2= row2->at(i);
+            if (val1 != val2)
+                return true;
+        }
+       
         return false;
-
-      if (other.m_feeder == 0)
-        return m_current_row != -1;
-
-      if (m_feeder == 0)
-        return other.m_current_row != -1;
-
-      if (other.m_feeder->m_field_count != m_feeder->m_field_count)
-        return true;
-
-      Iterator_value_type *row1= &m_feeder->m_rows[m_current_row];
-      Iterator_value_type *row2= &other.m_feeder->m_rows[m_current_row];
-      for (unsigned int i= 0; i< m_feeder->m_field_count; ++i)
-      {
-        Value val1= row1->at(i);
-        Value val2= row2->at(i);
-        if (val1 != val2)
-          return true;
-      }
-      return false;
     }
 
- private:
+private:
     void increment()
     {
-      if (++m_current_row >= m_feeder->m_row_count)
-        m_current_row= -1;
+        if (++m_current_row >= m_feeder->m_row_count)
+            m_current_row= -1;
     }
 
     Result_set *m_feeder;

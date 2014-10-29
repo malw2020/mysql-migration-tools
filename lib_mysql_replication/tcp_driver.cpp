@@ -57,9 +57,9 @@ namespace mysql { namespace system {
 
 uchar *net_store_data(uchar *destination, const uchar *source, size_t length)
 {
-  destination= net_store_length(destination, length);
-  memcpy(destination, source, length);
-  return destination + length;
+    destination = net_store_length(destination, length);
+    memcpy(destination, source, length);
+    return destination + length;
 }
 
 /**
@@ -71,15 +71,15 @@ uchar *net_store_data(uchar *destination, const uchar *source, size_t length)
 */
 static void proto_event_packet_header(std::istream &is, Log_event_header *h)
 {
-  Protocol_chunk<uint8> prot_marker(h->marker);
-  Protocol_chunk<uint32_t> prot_timestamp(h->timestamp);
-  Protocol_chunk<uint8_t> prot_type_code(h->type_code);
-  Protocol_chunk<uint32_t> prot_server_id(h->server_id);
-  Protocol_chunk<uint32_t> prot_event_length(h->event_length);
-  Protocol_chunk<uint32_t> prot_next_position(h->next_position);
-  Protocol_chunk<uint16_t> prot_flags(h->flags);
+    Protocol_chunk<uint8> prot_marker(h->marker);
+    Protocol_chunk<uint32_t> prot_timestamp(h->timestamp);
+    Protocol_chunk<uint8_t> prot_type_code(h->type_code);
+    Protocol_chunk<uint32_t> prot_server_id(h->server_id);
+    Protocol_chunk<uint32_t> prot_event_length(h->event_length);
+    Protocol_chunk<uint32_t> prot_next_position(h->next_position);
+    Protocol_chunk<uint16_t> prot_flags(h->flags);
 
-  is >> prot_marker
+    is >> prot_marker
           >> prot_timestamp
           >> prot_type_code
           >> prot_server_id
@@ -112,21 +112,22 @@ int Binlog_tcp_driver::connect(const std::string& user,
                                size_t offset)
 {
 
-  m_mysql= mysql_init(NULL);
+    m_mysql = mysql_init(NULL);
 
-  if (!m_mysql)
-    return ERR_FAIL;
+    if (!m_mysql)
+        return ERR_FAIL;
 
-  int err= sync_connect_and_authenticate(m_mysql, user, passwd, host, port, offset);
-  if (err != ERR_OK)
-    return err;
+    int err = sync_connect_and_authenticate(m_mysql, user, passwd, host, port, offset);
+    if (err != ERR_OK)
+        return err;
 
-  const char *binlog_file= "";
-  if (binlog_filename != "" || offset > 4)
-    start_binlog_dump(binlog_filename.c_str(), offset);
-  else
-    start_binlog_dump(binlog_file, m_binlog_offset);
-  return ERR_OK;
+    const char *binlog_file= "";
+    if (binlog_filename != "" || offset > 4)
+        start_binlog_dump(binlog_filename.c_str(), offset);
+    else
+        start_binlog_dump(binlog_file, m_binlog_offset);
+  
+    return ERR_OK;
 }
 
 
@@ -147,245 +148,255 @@ int sync_connect_and_authenticate(MYSQL *conn, const std::string &user,
                                   long offset)
 {
 
-  char *binlog_name= "";
-  char *binlog_pos;
-  ushort binlog_flags= 0;
-  uchar buf[1024];
-  uchar *pos= buf;
-  uchar *unix_sock= 0;
-  long default_start_pos= 4;
-  /* So that mysql_real_connect use TCP_IP_PROTOCOL. */
-  mysql_unix_port=0;
-  int server_id= 1;
-  MYSQL_RES* res = 0;
-  MYSQL_ROW row;
-  const char* checksum;
+    //char *binlog_name = "";
+    //char *binlog_pos;
+    //ushort binlog_flags = 0;
+    uchar buf[1024];
+    uchar *pos = buf;
+    //uchar *unix_sock = 0;
+    //long default_start_pos = 4;
+    /* So that mysql_real_connect use TCP_IP_PROTOCOL. */
+    mysql_unix_port = 0;
+    int server_id   = 1;
+    MYSQL_RES* res  = 0;
+    MYSQL_ROW row;
+    const char* checksum;
 
-  uchar version_split[3];
+    uchar version_split[3];
 
+    /*
+    Attempts to establish a connection to a MySQL database engine
+    running on host
 
-/*
-  Attempts to establish a connection to a MySQL database engine
-  running on host
+    Returns a MYSQL* connection handle if the connection was successful,
+    NULL if the connection was unsuccessful.
+    For a successful connection, the return value is the same as
+    the value of the first parameter.
+    */
+    if (!mysql_real_connect(conn, host.c_str(), user.c_str(), passwd.c_str(), "", port, 0, 0))
+        return ERR_FAIL;
 
-  Returns a MYSQL* connection handle if the connection was successful,
-  NULL if the connection was unsuccessful.
-  For a successful connection, the return value is the same as
-  the value of the first parameter.
-*/
-  if (!mysql_real_connect(conn, host.c_str(), user.c_str(),
-      passwd.c_str(), "", port, 0, 0))
-    return ERR_FAIL;
+    do_server_version_split(conn->server_version, version_split);
+    if (version_product(version_split) >= checksum_version_product)
+    {
+        if (mysql_query(conn, "SHOW GLOBAL VARIABLES LIKE 'BINLOG_CHECKSUM'") || 
+            !(res= mysql_store_result(conn)))
+            return ERR_CHECKSUM_QUERY_FAIL;
 
-  do_server_version_split(conn->server_version, version_split);
-  if (version_product(version_split) >= checksum_version_product)
-  {
+        if (!(row= mysql_fetch_row(res)))
+            return ERR_CHECKSUM_QUERY_FAIL;
 
-    if (mysql_query(conn, "SHOW GLOBAL VARIABLES LIKE 'BINLOG_CHECKSUM'")
-        || !(res= mysql_store_result(conn)))
-      return ERR_CHECKSUM_QUERY_FAIL;
+        if (!(checksum= row[0]))
+            return ERR_CHECKSUM_QUERY_FAIL;
 
-    if (!(row= mysql_fetch_row(res)))
-      return ERR_CHECKSUM_QUERY_FAIL;
+        checksum= row[1];
+        if (strcmp(checksum, "NONE") != 0)
+            return ERR_CHECKSUM_ENABLED;
+    }//end if version 5.6
 
-    if (!(checksum= row[0]))
-      return ERR_CHECKSUM_QUERY_FAIL;
+    int4store(pos, server_id);
+    pos += 4;
+    pos = net_store_data(pos, (uchar*) host.c_str(), host.size());
+    pos = net_store_data(pos, (uchar*) user.c_str(), user.size());
+    pos = net_store_data(pos, (uchar*) passwd.c_str(), passwd.size());
+    int2store(pos, (uint16) port);
+    pos += 2;
 
-    checksum= row[1];
-    if (strcmp(checksum, "NONE") != 0)
-      return ERR_CHECKSUM_ENABLED;
-  }//end if version 5.6
-
-  int4store(pos, server_id); pos+= 4;
-  pos= net_store_data(pos, (uchar*) host.c_str(), host.size());
-  pos= net_store_data(pos, (uchar*) user.c_str(), user.size());
-  pos= net_store_data(pos, (uchar*) passwd.c_str(), passwd.size());
-  int2store(pos, (uint16) port);
-  pos+= 2;
-
-  /*
+    /*
     Fake rpl_recovery_rank, which was removed in BUG#13963,
     so that this server can register itself on old servers,
     see BUG#49259.
-  */
-  int4store(pos, /* rpl_recovery_rank */ 0);
-  pos+= 4;
-  /* The master will fill in master_id */
-  int4store(pos, 0);
-  pos+= 4;
+    */
+    int4store(pos, /* rpl_recovery_rank */ 0);
+    pos += 4;
+    /* The master will fill in master_id */
+    int4store(pos, 0);
+    pos += 4;
 
-/*
+    /*
     It sends a command packet to the mysql-server.
 
     @retval ERR_OK      if success
     @retval ERR_FAIL    on failure
-*/
-  if (simple_command(conn, COM_REGISTER_SLAVE, buf, (size_t) (pos - buf), 0))
-    return ERR_FAIL;
+    */
+    if (simple_command(conn, COM_REGISTER_SLAVE, buf, (size_t) (pos - buf), 0))
+      return ERR_FAIL;
 
-  return ERR_OK;
+    return ERR_OK;
 }
 
-void Binlog_tcp_driver::start_binlog_dump(const char *binlog_name,
-                                          size_t offset)
+void Binlog_tcp_driver::start_binlog_dump(const char *binlog_name, size_t offset)
 {
-  uchar buf[1024];
-  char *binlog_pos;
-  ushort binlog_flags= 0;
-  int server_id= 6;
-  size_t binlog_name_length;
-  m_mysql->status= MYSQL_STATUS_READY;
-  int4store(buf, long(offset));
-  int2store(buf + 4, binlog_flags);
-  int4store(buf + 6, server_id);
-  binlog_name_length= strlen(binlog_name);
-  memcpy(buf + 10, binlog_name, binlog_name_length);
-  simple_command(m_mysql, COM_BINLOG_DUMP, buf, binlog_name_length + 10, 1);
+    uchar buf[1024];
+    ushort binlog_flags = 0;
+    int server_id = 6;
+    size_t binlog_name_length;
+    m_mysql->status = MYSQL_STATUS_READY;
+    int4store(buf, long(offset));
+    int2store(buf + 4, binlog_flags);
+    int4store(buf + 6, server_id);
+    binlog_name_length = strlen(binlog_name);
+    memcpy(buf + 10, binlog_name, binlog_name_length);
+    simple_command(m_mysql, COM_BINLOG_DUMP, buf, binlog_name_length + 10, 1);
 }
 
 int Binlog_tcp_driver::wait_for_next_event(mysql::Binary_log_event **event_ptr)
 {
-  // poll for new event until one event is found.
-  // return the event
-  int len;
-  len= cli_safe_read(m_mysql);
-  if (len == packet_error)
-  {
-     uchar version_split[3];
-     do_server_version_split(m_mysql->server_version, version_split);
-     if (version_product(version_split) >= checksum_version_product)
-       return ERR_PACKET_LENGTH;
-     return ERR_FAIL;
-  }
-  std::istringstream is(std::string((char*)m_mysql->net.buff, len));
-  m_waiting_event= new Log_event_header();
-  proto_event_packet_header(is, m_waiting_event);
-  *event_ptr= parse_event(is, m_waiting_event);
-  if (*event_ptr)
-  {
-    if ((*event_ptr)->header()->type_code == mysql::FORMAT_DESCRIPTION_EVENT)
+    // poll for new event until one event is found.
+    // return the event
+    int len = cli_safe_read(m_mysql);
+    if (len == packet_error)
     {
-      // Check server version and the checksum value
-      int ret= check_checksum_value(event_ptr);
-      return ret; // ret is the error code
+       uchar version_split[3];
+       do_server_version_split(m_mysql->server_version, version_split);
+       if (version_product(version_split) >= checksum_version_product)
+           return ERR_PACKET_LENGTH;
+      
+       return ERR_FAIL;
     }
-    return ERR_OK;
-  }
-  return ERR_FAIL;
+  
+    std::istringstream is(std::string((char*)m_mysql->net.buff, len));
+    m_waiting_event = new Log_event_header();
+    proto_event_packet_header(is, m_waiting_event);
+    *event_ptr = parse_event(is, m_waiting_event);
+    if (*event_ptr)
+    {
+        if ((*event_ptr)->header()->type_code == mysql::FORMAT_DESCRIPTION_EVENT)
+        {
+            // Check server version and the checksum value
+            int ret= check_checksum_value(event_ptr);
+            return ret; // ret is the error code
+        }
+        
+        return ERR_OK;
+    }
+    
+    return ERR_FAIL;
 }
 
 int Binlog_tcp_driver::connect()
 {
-  return connect(m_user, m_passwd, m_host, m_port);
+    return connect(m_user, m_passwd, m_host, m_port);
 }
-int Binlog_tcp_driver::connect(const std::string &binlog_filename,
-                               ulong offset)
+
+int Binlog_tcp_driver::connect(const std::string &binlog_filename, ulong offset)
 {
-  return connect(m_user, m_passwd, m_host, m_port, binlog_filename, offset);
+    return connect(m_user, m_passwd, m_host, m_port, binlog_filename, offset);
 }
+
 /**
  * Make synchronous reconnect.
  */
 void Binlog_tcp_driver::reconnect()
 {
-  disconnect();
-  connect(m_user, m_passwd, m_host, m_port);
+    disconnect();
+    connect(m_user, m_passwd, m_host, m_port);
 }
 
 int Binlog_tcp_driver::disconnect()
 {
-  m_waiting_event= 0;
-  mysql_close(m_mysql);
-  return ERR_OK;
+    m_waiting_event= 0;
+    mysql_close(m_mysql);
+    return ERR_OK;
 }
 
 
 void Binlog_tcp_driver::shutdown(void)
 {
-  m_shutdown= true;
+    m_shutdown = true;
 }
 
 int Binlog_tcp_driver::set_position(const std::string &str, ulong position)
 {
-  //validate the new position before we attempt to set.
+    //validate the new position before we attempt to set.
 
-  MYSQL *mysql= mysql_init(NULL);
-  if (!mysql)
-    return ERR_FAIL;
-  int err= sync_connect_and_authenticate(mysql, m_user, m_passwd, m_host, m_port);
-  if (err != ERR_OK)
-    return err;
-
-  std::map<std::string, unsigned long> binlog_map;
-  if (fetch_binlog_name_and_size(mysql, &binlog_map))
-    return ERR_MYSQL_QUERY_FAIL;
-
-  mysql_close(mysql);
-
-  std::map<std::string, unsigned long>::iterator binlog_itr= binlog_map.find(str);
-  if (binlog_itr == binlog_map.end())
-    return ERR_FAIL;
-  if (position > binlog_itr->second)
-    return ERR_FAIL;
-  disconnect();
+    MYSQL *mysql = mysql_init(NULL);
+    if (!mysql)
+        return ERR_FAIL;
   
-  if (connect(m_user, m_passwd, m_host, m_port, str, position))
-    return ERR_CONNECT;
-  return ERR_OK;
-}
-int Binlog_tcp_driver::get_position(std::string *filename_ptr,
-                                    ulong *position_ptr)
-{
-  MYSQL *mysql= mysql_init(NULL);
-  if (!mysql)
-    return ERR_FAIL;  
-  int err= sync_connect_and_authenticate(mysql, m_user, m_passwd, m_host, m_port);
-  if (err != ERR_OK)
-    return err;
+    int err = sync_connect_and_authenticate(mysql, m_user, m_passwd, m_host, m_port);
+    if (err != ERR_OK)
+        return err;
 
-  if (fetch_master_status(mysql, &m_binlog_file_name, &m_binlog_offset))
-    return ERR_MYSQL_QUERY_FAIL;
+    std::map<std::string, unsigned long> binlog_map;
+    if (fetch_binlog_name_and_size(mysql, &binlog_map))
+        return ERR_MYSQL_QUERY_FAIL;
 
-  mysql_close(mysql);
-   if (filename_ptr)
-    *filename_ptr= m_binlog_file_name;
-  if (position_ptr)
-    *position_ptr= m_binlog_offset;
-  return ERR_OK;
+    mysql_close(mysql);
+
+    std::map<std::string, unsigned long>::iterator binlog_itr= binlog_map.find(str);
+    if (binlog_itr == binlog_map.end())
+        return ERR_FAIL;
+    if (position > binlog_itr->second)
+        return ERR_FAIL;
+    disconnect();
+  
+    if (connect(m_user, m_passwd, m_host, m_port, str, position))
+        return ERR_CONNECT;
+    
+    return ERR_OK;
 }
-bool fetch_master_status(MYSQL *mysql, std::string *filename,
-                         unsigned long *position)
+int Binlog_tcp_driver::get_position(std::string *filename_ptr, ulong *position_ptr)
 {
-  if (mysql_query(mysql, "show master status"))
-    return ERR_MYSQL_QUERY_FAIL;
-  MYSQL_RES *res= mysql_use_result(mysql);
-  if (!res)
-    return ERR_MYSQL_QUERY_FAIL;
-  MYSQL_ROW row= mysql_fetch_row(res);
-  if (!row)
-    return ERR_MYSQL_QUERY_FAIL;
-  *filename= row[0];
-  *position= strtoul(row[1], NULL, 0);
-  return ERR_OK;
+    MYSQL *mysql = mysql_init(NULL);
+    if (!mysql)
+        return ERR_FAIL;  
+
+    int err = sync_connect_and_authenticate(mysql, m_user, m_passwd, m_host, m_port);
+    if (err != ERR_OK)
+        return err;
+
+    if (fetch_master_status(mysql, &m_binlog_file_name, &m_binlog_offset))
+        return ERR_MYSQL_QUERY_FAIL;
+
+    mysql_close(mysql);
+    if (filename_ptr)
+        *filename_ptr = m_binlog_file_name;
+    
+    if (position_ptr)
+        *position_ptr = m_binlog_offset;
+  
+    return ERR_OK;
+}
+bool fetch_master_status(MYSQL *mysql, std::string *filename, unsigned long *position)
+{
+    if (mysql_query(mysql, "show master status"))
+        return ERR_MYSQL_QUERY_FAIL;
+    
+    MYSQL_RES *res = mysql_use_result(mysql);
+    if (!res)
+        return ERR_MYSQL_QUERY_FAIL;
+  
+    MYSQL_ROW row = mysql_fetch_row(res);
+    if (!row)
+        return ERR_MYSQL_QUERY_FAIL;
+  
+    *filename = row[0];
+    *position = strtoul(row[1], NULL, 0);
+    
+    return ERR_OK;
 }
 
 bool fetch_binlog_name_and_size(MYSQL *mysql, std::map<std::string, unsigned long> *binlog_map)
 {
-  if (mysql_query(mysql, "show binary logs"))
-    return ERR_MYSQL_QUERY_FAIL;
-  MYSQL_RES *res= mysql_use_result(mysql);
-  if (!res)
-    return ERR_MYSQL_QUERY_FAIL;
-  while (MYSQL_ROW row= mysql_fetch_row(res))
-  {
-    unsigned long position;
-    std::string filename;
-    if (!row)
-      return ERR_MYSQL_QUERY_FAIL;
-    filename= row[0];
-    position= strtoul(row[1], NULL, 0);
-    (*binlog_map).insert(std::make_pair<std::string, unsigned long>(filename, position));
-  }
-  return ERR_OK;
+    if (mysql_query(mysql, "show binary logs"))
+        return ERR_MYSQL_QUERY_FAIL;
+  
+    MYSQL_RES *res = mysql_use_result(mysql);
+    if (!res)
+        return ERR_MYSQL_QUERY_FAIL;
+  
+    while (MYSQL_ROW row = mysql_fetch_row(res))
+    {
+        if (!row)
+           return ERR_MYSQL_QUERY_FAIL;
+        
+        std::string filename   = row[0];
+        unsigned long position = strtoul(row[1], NULL, 0);
+       (*binlog_map).insert(std::make_pair<std::string, unsigned long>(filename, position));
+    }
+    
+    return ERR_OK;
 }
+
 }} // end namespace mysql::system

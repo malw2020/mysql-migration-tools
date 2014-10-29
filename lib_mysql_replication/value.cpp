@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 using namespace mysql;
 using namespace mysql::system;
+
 namespace mysql {
 
 uint32_t calc_field_size(unsigned char column_type, const unsigned char *field_ptr,

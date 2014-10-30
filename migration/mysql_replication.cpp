@@ -195,6 +195,8 @@ Binary_log_event* RowVariables::process_event(Row_event *ev)
             Log::get_instance().log().info("Update");
             result = update_row_event(ev, databse_table);
             break;
+        default:
+            break;
     }
 
     ev->print_long_info(std::cout);

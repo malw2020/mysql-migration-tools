@@ -26,11 +26,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <mysql.h>
 #include <climits>
 #include <iostream>
+
 #define MAX_TIME_WIDTH 10
 #define MAX_DATETIME_WIDTH 19
 #define DATETIME_MAX_DECIMALS 6
 
 using namespace mysql;
+
 namespace mysql {
 /**
  This helper function calculates the size in bytes of a particular field in a
@@ -44,8 +46,7 @@ namespace mysql {
 
  @return The size in bytes of a particular field
 */
-uint32_t calc_field_size(unsigned char column_type, const unsigned char *field_ptr,
-                    uint32_t metadata);
+uint32_t calc_field_size(unsigned char column_type, const unsigned char *field_ptr,  uint32_t metadata);
 
 
 /**
@@ -58,20 +59,17 @@ uint32_t calc_field_size(unsigned char column_type, const unsigned char *field_p
 class Value
 {
 public:
-    Value(enum_field_types type, uint32_t metadata, const char *storage) :
-      m_type(type), m_storage(storage), m_metadata(metadata), m_is_null(false)
+    Value(enum_field_types type, uint32_t metadata, const char *storage) : m_type(type), m_storage(storage), m_metadata(metadata), m_is_null(false)
     {
-      m_size= calc_field_size((unsigned char)type,
-                              (const unsigned char*)storage,
-                              metadata);
-    };
+         m_size = calc_field_size((unsigned char)type, (const unsigned char*)storage, metadata);
+    }
 
     Value()
     {
-      m_size= 0;
-      m_storage= 0;
-      m_metadata= 0;
-      m_is_null= false;
+         m_size     = 0;
+         m_storage  = 0;
+         m_metadata = 0;
+         m_is_null  = false;
     }
 
     /**
@@ -80,12 +78,13 @@ public:
     Value(const Value& val);
 
     Value &operator=(const Value &val);
+    
     bool operator==(const Value &val) const;
     bool operator!=(const Value &val) const;
 
     ~Value() {}
 
-    void is_null(bool s) { m_is_null= s; }
+    void is_null(bool s) { m_is_null = s; }
     bool is_null(void) const { return m_is_null; }
 
     const char *storage() const { return m_storage; }
@@ -179,6 +178,6 @@ public:
     void to(float &out, const Value &val) const;
 };
 
-
 } // end namespace mysql
+
 #endif	/* VALUE_ADAPTER_INCLUDED */
